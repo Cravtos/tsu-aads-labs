@@ -3,6 +3,14 @@
 #include <iomanip>
 #include <random>
 
+std::mt19937& mt()
+{
+    // initialize once per thread
+    thread_local static std::random_device rd;
+    thread_local static std::mt19937 mt(rd());
+    return mt;
+}
+
 BigNum::BigNum(): size(1)
 {
     factors = new base_t[size];
@@ -20,8 +28,7 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
     }
 
     if (fill == RANDOM) {
-        std::random_device rd;
-        std::mt19937 mersenne(rd());
+        std::mt19937 mersenne = mt();
 
         for (size_t i = 0; i < size; i++) {
             factors[i] = mersenne();
