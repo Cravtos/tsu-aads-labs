@@ -28,13 +28,13 @@ public:
     ~BigNum();
 
     BigNum operator+(const BigNum& bn);
-    BigNum operator+(const uint32_t n);
+    BigNum operator+(const base_t n);
 
     BigNum& operator=(const BigNum& bn);
     BigNum(const BigNum& bn);
 
     friend std::ostream& operator<<(std::ostream& os, const BigNum& bn);
-    friend std::istream& operator>>(std::istream& is, const BigNum& bn);
+    friend std::istream& operator>>(std::istream& is, BigNum& bn);
 
 private:
     // Changes size of allocated memory to new_size. Copies old values.
