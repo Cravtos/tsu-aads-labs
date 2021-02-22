@@ -6,7 +6,6 @@
 
 typedef uint32_t base_t;
 typedef uint64_t ext_base_t;
-const uint32_t base = UINT32_MAX;
 
 const uint32_t ZERO = 0;
 const uint32_t RANDOM = 1;
@@ -21,13 +20,13 @@ public:
 
     // Create number with specified size.
     // If fill == ZERO, created number equal 0,
-    // If fill == RANDOM, created number is randomed.
+    // If fill == RANDOM, created number is random.
     BigNum(size_t size, uint32_t fill = RANDOM);
 
     ~BigNum();
 
     BigNum operator+(const BigNum& bn);
-    BigNum operator+(const base_t n);
+    BigNum operator+(base_t n);
 
     BigNum& operator=(const BigNum& bn);
     BigNum(const BigNum& bn);

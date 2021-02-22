@@ -13,7 +13,7 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
 {
     factors = new base_t[size];
 
-    if (fill != RANDOM) {
+    if (fill == ZERO || fill != RANDOM) {
         for (size_t i = 0; i < size; i++) {
             factors[i] = 0;
         }
@@ -42,7 +42,7 @@ BigNum::BigNum(const BigNum& bn)
 BigNum BigNum::operator+(const BigNum& bn) {
     BigNum cpy = *this;
 
-    ext_base_t tmp = 0;
+    ext_base_t tmp;
     base_t to_next = 0;
     for (size_t i = 0; i < cpy.size; i++) {
         tmp = ext_base_t(cpy.factors[i]) + bn.factors[i] + to_next;
@@ -58,10 +58,10 @@ BigNum BigNum::operator+(const BigNum& bn) {
     return cpy;
 }
 
-BigNum BigNum::operator+(const base_t n) {
+BigNum BigNum::operator+(base_t n) {
     BigNum cpy = *this;
 
-    ext_base_t tmp = 0;
+    ext_base_t tmp;
     base_t to_next = n;
     for (size_t i = 0; i < cpy.size; i++) {
         tmp = ext_base_t(cpy.factors[i]) + to_next;
@@ -165,7 +165,7 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
 }
 
 BigNum& BigNum::resize(size_t new_size) {
-    base_t* new_factors = new base_t[new_size];
+    auto* new_factors = new base_t[new_size];
     
     // Copy old values
     size_t min_size = (new_size > size) ? size : new_size;
