@@ -4,33 +4,25 @@
 using namespace std;
 
 int main() {
-    // BigNum zero;
-    // cout << "Zero: " << endl;
-    // cout << zero << endl;
+    BigNum zero;
+    cout << "Zero: " << zero << endl;
 
-    // BigNum random(3, RANDOM);
-    // cout << "Random: " << endl;
-    // cout << random << endl;
+    BigNum random(1, RANDOM);
+    cout << "Random: " << random << endl;
 
     BigNum in;
-    cout << "Enter number in hex: " << endl;
+    cout << "Enter number in hex: ";
     cin >> in;
-    cout << in << endl << endl;
+    cout << "Got: " << in << endl;
 
-    // BigNum copy = random;
-    // cout << "Copy of random: " << endl;
-    // cout << copy << endl;
+    BigNum copy = random;
+    cout << "Copy of random: " << copy << endl;
 
-    // zero = random;
-    // cout << "Assigned from random: " << endl;
-    // cout << zero << endl;
+    zero = random;
+    cout << "Assigned from random: " << zero << endl;
 
-    BigNum sum = in + 2;
-    cout << "2 + Entered number: " << endl;
-    cout << sum << endl;
+    cout << random << " + " << in << ": " << in + random << endl;
 
-    // const uint32_t add = 5;
-    // sum = random + add;
-    // cout << "Random + " << add << ": " << endl;
-    // cout << sum << endl;
+    const uint32_t add = 0xFFFFFFFF;
+    cout << random << " + " << add << ": " << random + add << endl;
 }

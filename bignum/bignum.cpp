@@ -40,32 +40,32 @@ BigNum::BigNum(const BigNum& bn)
 }
 
 BigNum BigNum::operator+(const BigNum& bn) {
+    BigNum cpy = *this;
+
     ext_base_t tmp = 0;
     base_t to_next = 0;
-    for (size_t i = 0; i < bn.size; i++) {
-        tmp = factors[i] + bn.factors[i] + to_next;
-        factors[i] = tmp % base;
+    for (size_t i = 0; i < cpy.size; i++) {
+        tmp = ext_base_t(cpy.factors[i]) + bn.factors[i] + to_next;
+        cpy.factors[i] = tmp; // % base;
         to_next = tmp >> (sizeof(base_t) * 8);
     }
 
     if (to_next != 0) {
-        resize(size + 1);
-        factors[size - 1] += to_next;
+        cpy.resize(size + 1);
+        cpy.factors[cpy.size - 1] += to_next;
     }
 
-    return *this;
+    return cpy;
 }
 
-
-// TODO: implement. Ask if BigNum should resize dynamicly.
 BigNum BigNum::operator+(const base_t n) {
     BigNum cpy = *this;
 
     ext_base_t tmp = 0;
     base_t to_next = n;
-    for (size_t i = 0; i < size; i++) {
-        tmp = cpy.factors[i] + to_next;
-        factors[i] = tmp % base;
+    for (size_t i = 0; i < cpy.size; i++) {
+        tmp = ext_base_t(cpy.factors[i]) + to_next;
+        cpy.factors[i] = tmp; // % base;
         to_next = tmp >> (sizeof(base_t) * 8);
     }
 
@@ -74,7 +74,7 @@ BigNum BigNum::operator+(const base_t n) {
         cpy.factors[cpy.size - 1] += to_next;
     }
 
-    return *this;
+    return cpy;
 }
 
 BigNum& BigNum::operator=(const BigNum& bn)
@@ -106,8 +106,9 @@ BigNum::~BigNum()
 std::ostream& operator<<(std::ostream& os, const BigNum& bn)
 {
     os << std::hex << std::uppercase;
+    size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
     for (ssize_t i = bn.size - 1; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(sizeof(base_t) * 2) << bn.factors[i];
+        os << std::setfill('0') << std::setw(digits) << bn.factors[i];
     }
 
     return os;
@@ -129,7 +130,6 @@ size_t hex(char c) {
     throw std::invalid_argument("not a hex value");
 }
 
-// TODO: FIX
 std::istream& operator>>(std::istream& is, BigNum& bn)
 {
     std::string s;

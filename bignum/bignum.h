@@ -14,7 +14,6 @@ const uint32_t RANDOM = 1;
 class BigNum {
     base_t* factors;
     size_t size;
-    // TODO: ask about using size + capacity.
 
 public:
     // Create number 0
