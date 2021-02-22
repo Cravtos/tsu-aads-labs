@@ -1,7 +1,7 @@
 #include "bignum.h"
 
-#include <ctime>
 #include <iomanip>
+#include <random>
 
 BigNum::BigNum(): size(1)
 {
@@ -20,9 +20,11 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
     }
 
     if (fill == RANDOM) {
-        srand(time(nullptr));
+        std::random_device rd;
+        std::mt19937 mersenne(rd());
+
         for (size_t i = 0; i < size; i++) {
-            factors[i] = rand();
+            factors[i] = mersenne();
         }
     }
 }
@@ -105,7 +107,7 @@ std::ostream& operator<<(std::ostream& os, const BigNum& bn)
 {
     os << std::hex << std::uppercase;
     for (ssize_t i = bn.size - 1; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(4) << bn.factors[i];
+        os << std::setfill('0') << std::setw(sizeof(base_t) * 2) << bn.factors[i];
     }
 
     return os;
@@ -136,7 +138,8 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     bn.~BigNum();
 
     size_t len = s.length();
-    bn.size = (len / 4) + (len % 4 > 0);
+    size_t d = sizeof(base_t) * 2; // amount of digits in one base_t
+    bn.size = (len / d) + (len % d > 0);
     
     bn.factors = new base_t[bn.size];
     for (size_t i = 0; i < bn.size; i++) {
@@ -145,19 +148,17 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
 
     // Fill everything but last factor
     for (size_t fi = 0; fi < bn.size - 1; fi++) {
-        for (size_t si = 0; si < 4; si++) {
-            size_t idx = len - 1 - (si + fi * 4);
+        for (size_t si = 0; si < d; si++) {
+            size_t idx = len - 1 - (si + fi * d);
             bn.factors[fi] |= hex(s[idx]) << (4 * si);
-            std::cout << std::hex << "or with: " << (hex(s[idx]) << (4 * si)) << std::endl; // debug
         }
     }
     
     // Fill last factor
-    size_t bound = (len % 4 == 0) ? 4 : len % 4;
+    size_t bound = (len % d == 0) ? d : len % d;
     for (size_t si = 0; si < bound; si++) {
-        size_t idx = len - 1 - (si + (bn.size - 1) * 4);
+        size_t idx = len - 1 - (si + (bn.size - 1) * d);
         bn.factors[bn.size - 1] |= hex(s[idx]) << (4 * si);
-        std::cout << std::hex << "or with: " << (hex(s[idx]) << (4 * si)) << std::endl; // debug
     }
 
     return is;
