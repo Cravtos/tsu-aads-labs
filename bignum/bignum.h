@@ -7,12 +7,15 @@
 typedef uint32_t base_t;
 typedef uint64_t ext_base_t;
 
+const uint32_t base_size = sizeof(base_t) * 8;
+
 const uint32_t ZERO = 0;
 const uint32_t RANDOM = 1;
 
 class BigNum {
     base_t* factors;
     size_t size;
+    size_t cap;
 
 public:
     // Create number 0
@@ -21,7 +24,7 @@ public:
     // Create number with specified size.
     // If fill == ZERO, created number equal 0,
     // If fill == RANDOM, created number is random.
-    BigNum(size_t size, uint32_t fill = RANDOM);
+    BigNum(size_t size, uint32_t fill = ZERO);
 
     ~BigNum();
 
@@ -36,7 +39,7 @@ public:
 
 private:
     // Changes size of allocated memory to new_size. Copies old values.
-    BigNum& resize(size_t new_size);
+    BigNum& resize(size_t new_cap);
 };
 
 #endif //BIGNUM_BIGNUM_H

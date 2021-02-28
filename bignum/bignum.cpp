@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <random>
 
+// TODO: fix rng
 std::mt19937& mt()
 {
     // initialize once per thread
@@ -11,15 +12,18 @@ std::mt19937& mt()
     return mt;
 }
 
-BigNum::BigNum(): size(1)
+BigNum::BigNum(): size(1), cap(2)
 {
-    factors = new base_t[size];
-    factors[0] = 0;
+    factors = new base_t[cap];
+    for (size_t i = 0; i < cap; i++) {
+        factors[i] = 0;
+    }
 }
 
 BigNum::BigNum(size_t size, uint32_t fill): size(size)
 {
-    factors = new base_t[size];
+    cap = size + (size / 5 == 0) ? (1) : (size / 5);
+    factors = new base_t[cap];
 
     if (fill == ZERO || fill != RANDOM) {
         for (size_t i = 0; i < size; i++) {
@@ -39,49 +43,64 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
 BigNum::BigNum(const BigNum& bn)
 {
     size = bn.size;
-    factors = new base_t[size];
+    cap = bn.cap;
+    factors = new base_t[cap];
 
     for (size_t i = 0; i < size; i++) {
         factors[i] = bn.factors[i];
     }
 }
 
+// TODO: test
 BigNum BigNum::operator+(const BigNum& bn) {
-    BigNum cpy = *this;
+    auto* smaller = (this->size < bn.size) ? this : &bn;
+    auto* bigger = (this->size > bn.size) ? this : &bn;
 
+    BigNum res(bigger->size, ZERO); 
+
+    // first sum ranks of both numbers
     ext_base_t tmp;
     base_t to_next = 0;
-    for (size_t i = 0; i < cpy.size; i++) {
-        tmp = ext_base_t(cpy.factors[i]) + bn.factors[i] + to_next;
-        cpy.factors[i] = tmp; // % base;
-        to_next = tmp >> (sizeof(base_t) * 8);
+    for (size_t i = 0; i < smaller->size; i++) {
+        tmp = ext_base_t(smaller->factors[i]) + bigger->factors[i] + to_next;
+        res.factors[i] = tmp; // % base;
+        to_next = tmp >> base_size;
     }
 
+    // then handle carryovers
+    for (size_t i = smaller->size; i < res.size; i++) {
+        tmp = ext_base_t(bigger->factors[i]) + to_next;
+        res.factors[i] = tmp; // % base;
+        to_next = tmp >> base_size;
+    }
+
+    // last carryover is here because there are not ranks left in the bigger number
     if (to_next != 0) {
-        cpy.resize(size + 1);
-        cpy.factors[cpy.size - 1] += to_next;
+        res.factors[res.size] = to_next;
+        res.size++;
     }
 
-    return cpy;
+    return res;
 }
 
+// TODO: test
 BigNum BigNum::operator+(base_t n) {
-    BigNum cpy = *this;
+    BigNum res(size, ZERO);
 
     ext_base_t tmp;
     base_t to_next = n;
-    for (size_t i = 0; i < cpy.size; i++) {
-        tmp = ext_base_t(cpy.factors[i]) + to_next;
-        cpy.factors[i] = tmp; // % base;
-        to_next = tmp >> (sizeof(base_t) * 8);
+    for (size_t i = 0; i < res.size; i++) {
+        tmp = ext_base_t(factors[i]) + to_next;
+        res.factors[i] = tmp; // % base;
+        to_next = tmp >> base_size;
     }
 
     if (to_next != 0) {
-        cpy.resize(cpy.size + 1);
-        cpy.factors[cpy.size - 1] += to_next;
+        res.factors[res.size] = to_next;
+        res.size++;
     }
 
-    return cpy;
+    return res;
 }
 
 BigNum& BigNum::operator=(const BigNum& bn)
@@ -93,7 +112,8 @@ BigNum& BigNum::operator=(const BigNum& bn)
     this->~BigNum();
 
     size = bn.size;
-    factors = new base_t[size];
+    cap = bn.cap;
+    factors = new base_t[cap];
 
     for (size_t i = 0; i < size; i++) {
         factors[i] = bn.factors[i];
@@ -107,6 +127,7 @@ BigNum::~BigNum()
     delete[] factors;
 
     size = 0;
+    cap = 0;
     factors = nullptr;
 }
 
@@ -148,7 +169,7 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     size_t d = sizeof(base_t) * 2; // amount of digits in one base_t
     bn.size = (len / d) + (len % d > 0);
     
-    bn.factors = new base_t[bn.size];
+    bn.factors = new base_t[bn.cap];
     for (size_t i = 0; i < bn.size; i++) {
             bn.factors[i] = 0;
     }
@@ -171,23 +192,23 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     return is;
 }
 
-BigNum& BigNum::resize(size_t new_size) {
-    auto* new_factors = new base_t[new_size];
+// BigNum& BigNum::resize(size_t new_size) {
+//     auto* new_factors = new base_t[new_size];
     
-    // Copy old values
-    size_t min_size = (new_size > size) ? size : new_size;
-    for (size_t i = 0; i < min_size; i++) {
-        new_factors[i] = factors[i];
-    }
+//     // Copy old values
+//     size_t min_size = (new_size > size) ? size : new_size;
+//     for (size_t i = 0; i < min_size; i++) {
+//         new_factors[i] = factors[i];
+//     }
 
-    // Null new values (if any)
-    for (size_t i = min_size; i < new_size; i++) {
-        new_factors[i] = 0;
-    }
+//     // Null new values (if any)
+//     for (size_t i = min_size; i < new_size; i++) {
+//         new_factors[i] = 0;
+//     }
 
-    this->~BigNum();
-    factors = new_factors;
-    size = new_size;
+//     this->~BigNum();
+//     factors = new_factors;
+//     size = new_size;
 
-    return *this;
-}
+//     return *this;
+// }
