@@ -7,7 +7,7 @@ int main() {
     BigNum zero;
     cout << "Zero: " << zero << endl;
 
-    BigNum random(2, RANDOM);
+    BigNum random(3, RANDOM);
     cout << "Random: " << random << endl;
 
     BigNum in;

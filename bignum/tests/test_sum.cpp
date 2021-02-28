@@ -11,6 +11,9 @@ int main() {
         BigNum s;
         cin >> s;
 
-        cout << f+s << endl;
+        cout << f + s << endl;
+
+        f += s;
+        cout << f << endl;
     }
 }
