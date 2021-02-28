@@ -260,8 +260,6 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     return is;
 }
 
-
-
 BigNum& BigNum::resize(size_t new_cap) {
  auto* new_factors = new base_t[new_cap];
 
@@ -282,4 +280,55 @@ BigNum& BigNum::resize(size_t new_cap) {
  size = new_size;
 
  return *this;
+}
+
+
+bool BigNum::operator==(const BigNum& bn) const
+{
+    if (bn.size != size) {
+        return false;
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        if (factors[i] != bn.factors[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool BigNum::operator>(const BigNum& bn) const
+{
+    if (size > bn.size) {
+        return true;
+    }
+
+    for (ssize_t i = size - 1; i >= 0; i--) {
+        if (factors[i] <= bn.factors[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool BigNum::operator!=(const BigNum& bn) const
+{
+    return !(*this == bn);
+}
+
+bool BigNum::operator<=(const BigNum& bn) const
+{
+    return !(*this > bn);
+}
+
+bool BigNum::operator>=(const BigNum& bn) const
+{
+    return (*this > bn) || (*this == bn);
+}
+
+bool BigNum::operator<(const BigNum& bn) const
+{
+    return !(*this > bn) && (*this != bn);
 }

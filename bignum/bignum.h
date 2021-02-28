@@ -34,6 +34,13 @@ public:
     BigNum operator+(base_t n) const;
     BigNum& operator+=(base_t n);
 
+    bool operator==(const BigNum& bn) const;
+    bool operator!=(const BigNum& bn) const;
+    bool operator>(const BigNum& bn) const;
+    bool operator>=(const BigNum& bn) const;
+    bool operator<(const BigNum& bn) const;
+    bool operator<=(const BigNum& bn) const;
+
     BigNum& operator=(const BigNum& bn);
     BigNum(const BigNum& bn);
 
