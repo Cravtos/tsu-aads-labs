@@ -25,6 +25,7 @@ public:
     // If fill == ZERO, created number equal 0,
     // If fill == RANDOM, created number is random.
     BigNum(size_t size, uint32_t fill = ZERO);
+    BigNum(std::string num);
 
     ~BigNum();
 

@@ -20,4 +20,8 @@ int main() {
 
     zero = random;
     cout << "Assigned from random: " << zero << endl;
+
+    string str = "AABDEF123";
+    BigNum from_str(str);
+    cout << "From string \"" << str << "\": " << from_str << endl;
 }

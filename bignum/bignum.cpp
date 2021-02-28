@@ -40,6 +40,13 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
     }
 }
 
+BigNum::BigNum(std::string num)
+{
+    std::stringstream is;
+    is << num;
+    is >> *this;
+}
+
 BigNum::BigNum(const BigNum& bn)
 {
     size = bn.size;
@@ -56,7 +63,7 @@ BigNum BigNum::operator+(const BigNum& bn) {
     auto* smaller = (this->size < bn.size) ? this : &bn;
     auto* bigger = (this->size >= bn.size) ? this : &bn;
 
-    BigNum res(bigger->size, ZERO); 
+    BigNum res(bigger->size, ZERO);
 
     // first sum ranks of both numbers
     ext_base_t tmp;
@@ -150,7 +157,7 @@ size_t hex(char c) {
     if (c >= 'a' && c <= 'f') {
         return c - 'a' + 10;
     }
-    
+
     if (c >= 'A' && c <= 'F') {
         return c - 'A' + 10;
     }
@@ -168,7 +175,7 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     size_t len = s.length();
     size_t d = sizeof(base_t) * 2; // amount of digits in one base_t
     bn.size = (len / d) + (len % d > 0);
-    
+
     bn.factors = new base_t[bn.cap];
     for (size_t i = 0; i < bn.size; i++) {
             bn.factors[i] = 0;
@@ -181,7 +188,7 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
             bn.factors[fi] |= hex(s[idx]) << (4 * si);
         }
     }
-    
+
     // Fill last factor
     size_t bound = (len % d == 0) ? d : len % d;
     for (size_t si = 0; si < bound; si++) {
