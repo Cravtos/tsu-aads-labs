@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_library(bignum bignum.cpp bignum.h)
 
-add_executable(test_constructors tests/test_constructors.cpp tests/test_compare.cpp)
+add_executable(test_constructors tests/test_constructors.cpp)
 target_link_libraries(test_constructors bignum)
 
 add_executable(test_sum tests/test_sum.cpp)

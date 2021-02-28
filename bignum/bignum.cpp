@@ -7,12 +7,10 @@ inline size_t calc_cap(size_t size) {
     return size + ((size / 5 == 0) ? (1) : (size / 5));
 }
 
-// TODO: fix rng
 std::mt19937& mt()
 {
     // initialize once per thread
-    thread_local static std::random_device rd;
-    thread_local static std::mt19937 mt(rd());
+    thread_local static std::mt19937 mt(static_cast<uint32_t>(time(nullptr)));
     return mt;
 }
 
