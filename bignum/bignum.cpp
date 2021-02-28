@@ -54,7 +54,7 @@ BigNum::BigNum(const BigNum& bn)
 // TODO: test
 BigNum BigNum::operator+(const BigNum& bn) {
     auto* smaller = (this->size < bn.size) ? this : &bn;
-    auto* bigger = (this->size > bn.size) ? this : &bn;
+    auto* bigger = (this->size >= bn.size) ? this : &bn;
 
     BigNum res(bigger->size, ZERO); 
 

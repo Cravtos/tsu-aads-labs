@@ -1,4 +1,4 @@
-#include "bignum.h"
+#include "../bignum.h"
 
 #include <iostream>
 using namespace std;
@@ -7,7 +7,7 @@ int main() {
     BigNum zero;
     cout << "Zero: " << zero << endl;
 
-    BigNum random(1, RANDOM);
+    BigNum random(2, RANDOM);
     cout << "Random: " << random << endl;
 
     BigNum in;
@@ -20,9 +20,4 @@ int main() {
 
     zero = random;
     cout << "Assigned from random: " << zero << endl;
-
-    cout << random << " + " << in << ": " << in + random << endl;
-
-    const uint32_t add = 0xFFFFFFFF;
-    cout << random << " + " << add << ": " << random + add << endl;
 }
