@@ -204,19 +204,39 @@ BigNum& BigNum::operator+=(base_t n) {
     return *this;
 }
 
-//BigNum BigNum::operator-(const BigNum& bn) const
-//{
-//    if (*this < bn) {
-//        throw std::invalid_argument("first value should be bigger than second to subtract");
-//    }
-//
-//    auto res = *this;
-//
-//    for ()
-//
-//    res.trim();
-//    return res;
-//}
+BigNum BigNum::operator-(const BigNum& bn) const
+{
+    if (*this < bn) {
+        throw std::invalid_argument("first value should be bigger than second to subtract");
+    }
+
+    auto res = *this;
+
+    ext_sbase_t tmp;
+    uint8_t carry = 0;
+    for (size_t i = 0; i < bn.size; i++) {
+        tmp = ext_sbase_t(factors[i]) - bn.factors[i] - carry;
+        res.factors[i] = tmp; // % base
+
+        carry = 0;
+        if (tmp < 0) {
+            carry = 1;
+        }
+    }
+
+    for (size_t i = bn.size; carry && i < size; i++) {
+        tmp = ext_sbase_t(factors[i]) - carry;
+        res.factors[i] = tmp; // % base
+
+        carry = 0;
+        if (tmp < 0) {
+            carry = 1;
+        }
+    }
+
+    res.trim();
+    return res;
+}
 
 
 BigNum& BigNum::operator=(const BigNum& bn)

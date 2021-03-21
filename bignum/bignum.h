@@ -6,6 +6,7 @@
 
 typedef uint32_t base_t;
 typedef uint64_t ext_base_t;
+typedef int64_t ext_sbase_t;
 
 const uint32_t base_size = sizeof(base_t) * 8;
 
