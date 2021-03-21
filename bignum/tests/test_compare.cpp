@@ -13,27 +13,27 @@ int main() {
         cin >> s;
 
         if (f > s) {
-            cout << ">" << endl;
+            cout << f << ">" << s << endl;
         }
 
         if (f >= s) {
-            cout << ">=" << endl;
+            cout << f << ">=" << s << endl;
         }
 
         if (f == s) {
-            cout << "==" << endl;
+            cout << f << "==" << s << endl;
         }
 
         if (f != s) {
-            cout << "!=" << endl;
+            cout << f << "!=" << s << endl;
         }
 
         if (f <= s) {
-            cout << "<=" << endl;
+            cout << f << "<=" << s << endl;
         }
 
         if (f < s) {
-            cout << "<" << endl;
+            cout << f << "<" << s << endl;
         }
     }
 }

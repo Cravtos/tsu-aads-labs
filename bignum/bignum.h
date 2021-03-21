@@ -25,7 +25,7 @@ public:
     // If fill == ZERO, created number equal 0,
     // If fill == RANDOM, created number is random.
     BigNum(size_t size, uint32_t fill = ZERO);
-    BigNum(std::string num);
+    BigNum(const std::string& num);
 
     ~BigNum();
 
@@ -33,6 +33,9 @@ public:
     BigNum& operator+=(const BigNum& bn);
     BigNum operator+(base_t n) const;
     BigNum& operator+=(base_t n);
+
+    BigNum operator-(const BigNum& bn) const;
+
 
     bool operator==(const BigNum& bn) const;
     bool operator!=(const BigNum& bn) const;
@@ -50,6 +53,9 @@ public:
 private:
     // Changes size of allocated memory to new_size. Copies old values.
     BigNum& resize(size_t new_cap);
+
+    // Remove leading zeros.
+    void trim();
 };
 
 #endif //BIGNUM_BIGNUM_H
