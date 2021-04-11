@@ -13,12 +13,16 @@ int main() {
             BigNum s;
             cin >> s;
 
-            cout << f << "+" << s << "=" << f+s << endl;
-            cout << f << "-" << s << "=" << f-s << endl;
+            BigNum copy = f;
 
-            cout << f << "+=" << s << "=";
+            f -= s;
             f += s;
             cout << f << endl;
+
+            if (copy != f) {
+                std::cout << "Saved value != result!" << std::endl;
+                return -1;
+            }
         } catch (const std::invalid_argument& e) {
             std::cout << e.what() << std::endl;
         }
