@@ -1,23 +1,29 @@
 #include "../bignum.h"
 
 #include <iostream>
+#include <random>
+#include <ctime>
 using namespace std;
 
 int main() {
-    ssize_t N = 100;
+    ssize_t N = 10000;
+
+    thread_local static mt19937 mt(static_cast<uint32_t>(time(nullptr)));
     while (N --> 0) {
         try {
-            BigNum f;
-            cin >> f;
+            BigNum f(mt() % 1000, RANDOM);
+            BigNum s(mt() % 1000, RANDOM);
 
-            BigNum s;
-            cin >> s;
+            if (f < s) {
+                BigNum t = f;
+                f = s;
+                s = t;
+            }
 
             BigNum copy = f;
 
             f -= s;
             f += s;
-            cout << f << endl;
 
             if (copy != f) {
                 std::cout << "Saved value != result!" << std::endl;

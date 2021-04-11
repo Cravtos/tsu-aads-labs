@@ -22,8 +22,14 @@ BigNum::BigNum(): size(1), cap(2)
     }
 }
 
-BigNum::BigNum(size_t size, uint32_t fill): size(size)
+BigNum::BigNum(size_t size, uint32_t fill)
 {
+    if (size == 0) {
+        size = 1;
+        fill = ZERO;
+    }
+    this->size = size;
+
     cap = calc_cap(size);
     factors = new base_t[cap];
 
@@ -36,7 +42,7 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
     }
 
     if (fill == RANDOM) {
-        std::mt19937 mersenne = mt();
+        thread_local static std::mt19937 mersenne = mt();
 
         for (size_t i = 0; i < size; i++) {
             factors[i] = mersenne();
@@ -52,6 +58,9 @@ BigNum::BigNum(size_t size, uint32_t fill): size(size)
 
 BigNum::BigNum(const std::string& num)
 {
+    factors = nullptr;
+    size = cap = 0;
+
     std::stringstream is;
     is << num;
     is >> *this;
@@ -235,13 +244,14 @@ BigNum BigNum::operator*(const BigNum& bn) const
         res.factors[i + smaller_size] += to_next;
     }
 
+    res.trim();
     return res;
 }
 
-// todo: implement
 BigNum& BigNum::operator*=(const BigNum& bn)
 {
-    return const_cast<BigNum&>(bn);
+    *this = *this * bn;
+    return *this;
 }
 
 BigNum BigNum::operator-(const BigNum& bn) const

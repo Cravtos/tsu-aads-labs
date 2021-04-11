@@ -13,3 +13,6 @@ target_link_libraries(test_sum bignum)
 
 add_executable(test_compare tests/test_compare.cpp)
 target_link_libraries(test_compare bignum)
+
+add_executable(test_mult tests/test_mult.cpp)
+target_link_libraries(test_mult bignum)
