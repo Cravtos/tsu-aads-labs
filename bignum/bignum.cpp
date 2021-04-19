@@ -213,35 +213,21 @@ BigNum& BigNum::operator+=(base_t n) {
 
 BigNum BigNum::operator*(const BigNum& bn) const
 {
-    size_t smaller_size;
-    size_t bigger_size;
-    base_t* smaller;
-    base_t* bigger;
-
-    if (this->size < bn.size) {
-        smaller_size = this->size;
-        smaller = this->factors;
-        bigger_size = bn.size;
-        bigger = bn.factors;
-    } else {
-        smaller_size = bn.size;
-        smaller = bn.factors;
-        bigger_size = this->size;
-        bigger = this->factors;
-    }
-
-    BigNum res(bigger_size + smaller_size, ZERO);
+    BigNum res(size + bn.size, ZERO);
 
     ext_base_t tmp;
-    for (size_t i = 0; i < bigger_size; i++) {
+    for (size_t i = 0; i < size; i++) {
         base_t to_next = 0;
-        for (size_t j = 0; j < smaller_size; j++) {
-            tmp = ext_base_t(smaller[j]) * ext_base_t(bigger[i]) + ext_base_t(res.factors[i + j]) + to_next;
+        for (size_t j = 0; j < bn.size; j++) {
+            if (bn.factors[j] == 0) {
+                continue;
+            }
+            tmp = ext_base_t(factors[i]) * ext_base_t(bn.factors[j]) + ext_base_t(res.factors[i + j]) + to_next;
             res.factors[i + j] = tmp; // % base;
             to_next = tmp >> base_size;
         }
 
-        res.factors[i + smaller_size] += to_next;
+        res.factors[i + bn.size] += to_next;
     }
 
     res.trim();
@@ -251,6 +237,32 @@ BigNum BigNum::operator*(const BigNum& bn) const
 BigNum& BigNum::operator*=(const BigNum& bn)
 {
     *this = *this * bn;
+    return *this;
+}
+
+BigNum BigNum::operator*(base_t n) const
+{
+    BigNum res(size + 1, ZERO);
+
+    ext_base_t tmp;
+    base_t to_next = 0;
+    for (size_t i = 0; i < size; i++) {
+        if (factors[i] == 0) {
+            continue;
+        }
+        tmp = ext_base_t(factors[i]) * ext_base_t(n) + ext_base_t(res.factors[i]) + to_next;
+        res.factors[i] = tmp; // % base;
+        to_next = tmp >> base_size;
+    }
+
+    res.factors[size] += to_next;
+
+    res.trim();
+    return res;
+}
+
+BigNum& BigNum::operator*=(base_t n) {
+    *this = *this * n;
     return *this;
 }
 
@@ -526,5 +538,3 @@ void BigNum::trim() {
         size--;
     }
 }
-
-

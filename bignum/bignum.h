@@ -38,6 +38,9 @@ public:
     BigNum operator*(const BigNum& bn) const;
     BigNum& operator*=(const BigNum& bn);
 
+    BigNum operator*(base_t n) const;
+    BigNum& operator*=(base_t n);
+
     BigNum operator-(const BigNum& bn) const;
     BigNum& operator-=(const BigNum& bn);
 
