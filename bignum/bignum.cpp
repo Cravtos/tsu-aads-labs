@@ -24,19 +24,19 @@ BigNum::BigNum(base_t num): size(1), cap(1)
     factors[0] = num;
 }
 
-BigNum::BigNum(size_t size, uint32_t fill)
+BigNum::BigNum(size_t cap, uint32_t fill)
 {
-    if (size == 0) {
-        size = 1;
+    if (cap == 0) {
+        cap = 1;
         fill = ZERO;
     }
 
-    this->size = size;
-    this->cap = size;
+    this->size = cap;
+    this->cap = cap;
     factors = new base_t[cap];
 
     if (fill != RANDOM) { // fill == ZERO
-        // TODO: think about how to deal with trimming
+        this->size = 1;
         for (size_t i = 0; i < cap; i++) {
             factors[i] = 0;
         }
@@ -45,7 +45,7 @@ BigNum::BigNum(size_t size, uint32_t fill)
     if (fill == RANDOM) {
         thread_local static std::mt19937 mersenne = mt();
 
-        for (size_t i = 0; i < size; i++) {
+        for (size_t i = 0; i < cap; i++) {
             factors[i] = mersenne();
         }
 
@@ -121,6 +121,7 @@ BigNum BigNum::operator+(const BigNum& bn) const {
     }
 
     BigNum res(bigger_size + 1, ZERO);
+    res.size = bigger_size;
 
     // first sum ranks of both numbers
     ext_base_t tmp;
@@ -141,9 +142,10 @@ BigNum BigNum::operator+(const BigNum& bn) const {
     // last carryover is here because there are not ranks left in the bigger number
     if (to_next != 0) {
         res.factors[bigger_size] = to_next;
+        res.size++;
     }
 
-    return res.trim();
+    return res;
 }
 
 BigNum& BigNum::operator+=(const BigNum& bn) {
@@ -194,6 +196,7 @@ BigNum& BigNum::operator+=(const BigNum& bn) {
 
 BigNum BigNum::operator+(base_t n) const {
     BigNum res(size + 1, ZERO);
+    res.size = size;
 
     ext_base_t tmp;
     base_t to_next = n;
@@ -205,9 +208,10 @@ BigNum BigNum::operator+(base_t n) const {
 
     if (to_next != 0) {
         res.factors[size] = to_next;
+        res.size++;
     }
 
-    return res.trim();
+    return res;
 }
 
 BigNum& BigNum::operator+=(base_t n) {
@@ -234,6 +238,7 @@ BigNum& BigNum::operator+=(base_t n) {
 BigNum BigNum::operator*(const BigNum& bn) const
 {
     BigNum res(size + bn.size, ZERO);
+    res.size = size + bn.size;
 
     ext_base_t tmp;
     for (size_t i = 0; i < size; i++) {
@@ -263,6 +268,7 @@ BigNum& BigNum::operator*=(const BigNum& bn)
 BigNum BigNum::operator*(base_t n) const
 {
     BigNum res(size + 1, ZERO);
+    res.size = size + 1;
 
     ext_base_t tmp;
     base_t to_next = 0;
@@ -300,6 +306,7 @@ BigNum BigNum::operator/(base_t n) const {
     }
 
     BigNum res(size, ZERO);
+    res.size = size;
 
     base_t rem = 0;
     ext_base_t tmp;

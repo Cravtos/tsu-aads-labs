@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    ssize_t N = 5;
+    ssize_t N = 100000;
 
     srand(time(nullptr));
     while (N --> 0) {

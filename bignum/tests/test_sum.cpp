@@ -6,7 +6,7 @@
 using namespace std;
 
 int main() {
-    ssize_t N = 10000;
+    ssize_t N = 100000;
 
     thread_local static mt19937 mt(static_cast<uint32_t>(time(nullptr)));
     while (N --> 0) {
