@@ -22,20 +22,26 @@ BigNum::BigNum(): size(1), cap(2)
     }
 }
 
+BigNum::BigNum(base_t num): size(1), cap(2)
+{
+    factors = new base_t[cap];
+    factors[0] = num;
+}
+
 BigNum::BigNum(size_t size, uint32_t fill)
 {
     if (size == 0) {
         size = 1;
         fill = ZERO;
     }
+
     this->size = size;
 
     cap = calc_cap(size);
     factors = new base_t[cap];
 
-    if (fill == ZERO || fill != RANDOM) {
-        size = 1;
-
+    if (fill != RANDOM) { // fill == ZERO
+        // TODO: think about how to deal with trimming
         for (size_t i = 0; i < cap; i++) {
             factors[i] = 0;
         }
@@ -75,6 +81,34 @@ BigNum::BigNum(const BigNum& bn)
     for (size_t i = 0; i < cap; i++) {
         factors[i] = bn.factors[i];
     }
+}
+
+BigNum& BigNum::operator=(const BigNum& bn)
+{
+    if (this == &bn) {
+        return *this;
+    }
+
+    this->~BigNum();
+
+    size = bn.size;
+    cap = bn.cap;
+    factors = new base_t[cap];
+
+    for (size_t i = 0; i < cap; i++) {
+        factors[i] = bn.factors[i];
+    }
+
+    return *this;
+}
+
+BigNum::~BigNum()
+{
+    delete[] factors;
+
+    size = 0;
+    cap = 0;
+    factors = nullptr;
 }
 
 BigNum BigNum::operator+(const BigNum& bn) const {
@@ -266,6 +300,66 @@ BigNum& BigNum::operator*=(base_t n) {
     return *this;
 }
 
+BigNum BigNum::operator/(const BigNum& bn) const {
+    return *this;
+}
+
+BigNum& BigNum::operator/=(const BigNum& bn) {
+    return *this;
+}
+
+BigNum BigNum::operator/(base_t n) const {
+    if (n == 0) {
+        throw std::overflow_error("can't divide by zero");
+    }
+
+    BigNum res(size, ZERO);
+
+    base_t rem = 0;
+    ext_base_t tmp;
+    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
+        tmp = (ext_base_t(rem) << base_size) + factors[i];
+        res.factors[i] = tmp / n;
+        rem = tmp % n;
+    }
+
+    return res.trim();
+}
+
+BigNum& BigNum::operator/=(base_t n) {
+    *this = *this / n;
+    return *this;
+}
+
+BigNum BigNum::operator%(const BigNum& bn) const {
+    return *this;
+}
+
+BigNum& BigNum::operator%=(const BigNum& bn) {
+    return *this;
+}
+
+BigNum BigNum::operator%(base_t n) const {
+    if (n == 0) {
+        throw std::overflow_error("can't divide by zero");
+    }
+
+    base_t rem = 0;
+    ext_base_t tmp;
+    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
+        tmp = (ext_base_t(rem) << base_size) + factors[i];
+        rem = tmp % n;
+    }
+
+    return BigNum(rem);
+}
+
+BigNum& BigNum::operator%=(base_t n) {
+    *this = *this % n;
+    return *this;
+}
+
+
 BigNum BigNum::operator-(const BigNum& bn) const
 {
     if (*this < bn) {
@@ -301,7 +395,6 @@ BigNum BigNum::operator-(const BigNum& bn) const
     return res;
 }
 
-
 BigNum& BigNum::operator-=(const BigNum& bn)
 {
     if (*this < bn) {
@@ -334,40 +427,12 @@ BigNum& BigNum::operator-=(const BigNum& bn)
     return *this;
 }
 
-BigNum& BigNum::operator=(const BigNum& bn)
-{
-    if (this == &bn) {
-        return *this;
-    }
-
-    this->~BigNum();
-
-    size = bn.size;
-    cap = bn.cap;
-    factors = new base_t[cap];
-
-    for (size_t i = 0; i < cap; i++) {
-        factors[i] = bn.factors[i];
-    }
-
-    return *this;
-}
-
-BigNum::~BigNum()
-{
-    delete[] factors;
-
-    size = 0;
-    cap = 0;
-    factors = nullptr;
-}
-
 std::ostream& operator<<(std::ostream& os, const BigNum& bn)
 {
     os << std::hex << std::uppercase;
     size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
-    for (ssize_t i = bn.size - 1; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(digits) << bn.factors[i];
+    for (ssize_t i = ssize_t(bn.size) - 1; i >= 0; i--) {
+        os << std::setfill('0') << std::setw(int(digits)) << bn.factors[i];
     }
 
     os << std::dec;
@@ -398,6 +463,7 @@ void trim(std::string& s) {
     }
     s = s.substr(beg, end);
 }
+
 
 std::istream& operator>>(std::istream& is, BigNum& bn)
 {
@@ -435,7 +501,6 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     return is;
 }
 
-
 BigNum& BigNum::resize(size_t new_cap) {
      auto* new_factors = new base_t[new_cap];
 
@@ -472,6 +537,7 @@ bool BigNum::operator==(const BigNum& bn) const
 
     return true;
 }
+
 bool BigNum::operator>(const BigNum& bn) const
 {
     if (size > bn.size) {
@@ -482,7 +548,7 @@ bool BigNum::operator>(const BigNum& bn) const
         return false;
     }
 
-    for (ssize_t i = size - 1; i >= 0; i--) {
+    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
         if (factors[i] < bn.factors[i]) {
             return false;
         }
@@ -505,7 +571,7 @@ bool BigNum::operator<(const BigNum& bn) const
         return false;
     }
 
-    for (ssize_t i = size - 1; i >= 0; i--) {
+    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
         if (factors[i] > bn.factors[i]) {
             return false;
         }
@@ -533,8 +599,10 @@ bool BigNum::operator>=(const BigNum& bn) const
     return !(*this < bn);
 }
 
-void BigNum::trim() {
+BigNum& BigNum::trim() {
     while (size != 1 && factors[size - 1] == 0) {
         size--;
     }
+
+    return *this;
 }

@@ -22,11 +22,18 @@ public:
     // Create number 0
     BigNum();
 
+    // Convert base_t to BigNum
+    BigNum(base_t num);
+
     // Create number with specified size.
     // If fill == ZERO, created number equal 0,
     // If fill == RANDOM, created number is random.
-    BigNum(size_t size, uint32_t fill = ZERO);
+    BigNum(size_t size, uint32_t fill);
+
+    // num - string containing number in hex
     BigNum(const std::string& num);
+    BigNum(const BigNum& bn);
+    BigNum& operator=(const BigNum& bn);
 
     ~BigNum();
 
@@ -41,6 +48,18 @@ public:
     BigNum operator*(base_t n) const;
     BigNum& operator*=(base_t n);
 
+    BigNum operator/(const BigNum& bn) const;
+    BigNum& operator/=(const BigNum& bn);
+
+    BigNum operator/(base_t n) const;
+    BigNum& operator/=(base_t n);
+
+    BigNum operator%(const BigNum& bn) const;
+    BigNum& operator%=(const BigNum& bn);
+
+    BigNum operator%(base_t n) const;
+    BigNum& operator%=(base_t n);
+
     BigNum operator-(const BigNum& bn) const;
     BigNum& operator-=(const BigNum& bn);
 
@@ -52,8 +71,6 @@ public:
     bool operator<(const BigNum& bn) const;
     bool operator<=(const BigNum& bn) const;
 
-    BigNum& operator=(const BigNum& bn);
-    BigNum(const BigNum& bn);
 
     friend std::ostream& operator<<(std::ostream& os, const BigNum& bn);
     friend std::istream& operator>>(std::istream& is, BigNum& bn);
@@ -63,7 +80,7 @@ private:
     BigNum& resize(size_t new_cap);
 
     // Remove leading zeros.
-    void trim();
+    BigNum& trim();
 };
 
 #endif //BIGNUM_BIGNUM_H
