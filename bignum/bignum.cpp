@@ -2,6 +2,8 @@
 
 #include <iomanip>
 #include <random>
+#include <string>
+#include <algorithm>
 
 std::mt19937& mt()
 {
@@ -420,6 +422,42 @@ BigNum& BigNum::operator-=(const BigNum& bn)
     return *this;
 }
 
+void BigNum::print(std::ostream& os) const {
+    if (*this == BigNum(0)) {
+        os << "0";
+        return;
+    }
+
+    BigNum tmp = *this;
+    std::string res;
+
+    while (tmp != BigNum(0)) {
+        res += char('0' + base_t(tmp % base_t(10)));
+        tmp /= 10;
+    }
+
+    std::reverse(res.begin(), res.end());
+    os << res;
+}
+
+BigNum bn_read(std::istream& is) {
+    BigNum res(0);
+
+    std::string in;
+    is >> in;
+
+    std::string::iterator it;
+    for (it = in.begin(); it != in.end(); it++) {
+        if (*it < '0' || *it > '9') {
+            throw std::invalid_argument("not decimal number given");
+        }
+
+        res = res * base_t(10) + base_t(*it - '0');
+    }
+
+    return res;
+}
+
 std::ostream& operator<<(std::ostream& os, const BigNum& bn)
 {
     os << std::hex << std::uppercase;
@@ -598,4 +636,17 @@ BigNum& BigNum::trim() {
     }
 
     return *this;
+}
+
+BigNum::operator base_t() const
+{
+    return factors[0];
+}
+
+BigNum::operator ext_base_t() const
+{
+    ext_base_t res = factors[0];
+    if (size == 1)
+        return res;
+    return res | (ext_base_t(factors[1]) << base_size);
 }

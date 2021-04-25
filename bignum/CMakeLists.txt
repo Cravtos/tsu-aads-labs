@@ -16,3 +16,6 @@ target_link_libraries(test_compare bignum)
 
 add_executable(test_mult tests/test_mult.cpp)
 target_link_libraries(test_mult bignum)
+
+add_executable(test_io tests/test_io.cpp)
+target_link_libraries(test_io bignum)

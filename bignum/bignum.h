@@ -63,6 +63,8 @@ public:
     BigNum operator-(const BigNum& bn) const;
     BigNum& operator-=(const BigNum& bn);
 
+    operator base_t() const;
+    operator ext_base_t() const;
 
     bool operator==(const BigNum& bn) const;
     bool operator!=(const BigNum& bn) const;
@@ -71,6 +73,7 @@ public:
     bool operator<(const BigNum& bn) const;
     bool operator<=(const BigNum& bn) const;
 
+    void print(std::ostream& os) const;
 
     friend std::ostream& operator<<(std::ostream& os, const BigNum& bn);
     friend std::istream& operator>>(std::istream& is, BigNum& bn);
@@ -82,5 +85,7 @@ private:
     // Remove leading zeros.
     BigNum& trim();
 };
+
+BigNum bn_read(std::istream& is);
 
 #endif //BIGNUM_BIGNUM_H
