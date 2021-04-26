@@ -76,6 +76,15 @@ BigNum::BigNum(const BigNum& bn)
     }
 }
 
+BigNum::~BigNum()
+{
+    delete[] factors;
+
+    size = 0;
+    cap = 0;
+    factors = nullptr;
+}
+
 BigNum& BigNum::operator=(const BigNum& bn)
 {
     if (this == &bn) {
@@ -93,15 +102,6 @@ BigNum& BigNum::operator=(const BigNum& bn)
     }
 
     return *this;
-}
-
-BigNum::~BigNum()
-{
-    delete[] factors;
-
-    size = 0;
-    cap = 0;
-    factors = nullptr;
 }
 
 BigNum BigNum::operator+(const BigNum& bn) const {
@@ -247,6 +247,9 @@ BigNum BigNum::operator*(const BigNum& bn) const
         base_t to_next = 0;
         for (size_t j = 0; j < bn.size; j++) {
             if (bn.factors[j] == 0) {
+                tmp = ext_base_t(res.factors[i + j]) + to_next;
+                res.factors[i + j] = tmp; // % base;
+                to_next = tmp >> base_size;
                 continue;
             }
             tmp = ext_base_t(factors[i]) * ext_base_t(bn.factors[j]) + ext_base_t(res.factors[i + j]) + to_next;
@@ -276,14 +279,16 @@ BigNum BigNum::operator*(base_t n) const
     base_t to_next = 0;
     for (size_t i = 0; i < size; i++) {
         if (factors[i] == 0) {
+            res.factors[i] = to_next;
+            to_next = 0;
             continue;
         }
-        tmp = ext_base_t(factors[i]) * ext_base_t(n) + ext_base_t(res.factors[i]) + to_next;
+        tmp = ext_base_t(factors[i]) * ext_base_t(n) + to_next;
         res.factors[i] = tmp; // % base;
         to_next = tmp >> base_size;
     }
 
-    res.factors[size] += to_next;
+    res.factors[size] = to_next;
 
     res.trim();
     return res;
@@ -353,7 +358,6 @@ BigNum& BigNum::operator%=(base_t n) {
     *this = *this % n;
     return *this;
 }
-
 
 BigNum BigNum::operator-(const BigNum& bn) const
 {
@@ -458,18 +462,6 @@ BigNum bn_read(std::istream& is) {
     return res;
 }
 
-std::ostream& operator<<(std::ostream& os, const BigNum& bn)
-{
-    os << std::hex << std::uppercase;
-    size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
-    for (ssize_t i = ssize_t(bn.size) - 1; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(int(digits)) << bn.factors[i];
-    }
-
-    os << std::dec;
-    return os;
-}
-
 size_t hex(char c) {
     if (c >= '0' && c <= '9') {
         return c - '0';
@@ -494,7 +486,6 @@ void trim(std::string& s) {
     }
     s = s.substr(beg, end);
 }
-
 
 std::istream& operator>>(std::istream& is, BigNum& bn)
 {
@@ -530,6 +521,18 @@ std::istream& operator>>(std::istream& is, BigNum& bn)
     }
 
     return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const BigNum& bn)
+{
+    os << std::hex << std::uppercase;
+    size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
+    for (ssize_t i = ssize_t(bn.size) - 1; i >= 0; i--) {
+        os << std::setfill('0') << std::setw(int(digits)) << uint32_t(bn.factors[i]);
+    }
+
+    os << std::dec;
+    return os;
 }
 
 BigNum& BigNum::resize(size_t new_cap) {
