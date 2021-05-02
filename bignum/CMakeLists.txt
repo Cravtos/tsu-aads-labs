@@ -3,7 +3,7 @@ project(bignum)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(bignum bignum.cpp bignum.h)
+add_library(bignum src/bignum.cpp src/constructors.cpp src/compare.cpp include/bignum.h src/io.cpp src/helpers.cpp)
 
 add_executable(test_constructors tests/test_constructors.cpp)
 target_link_libraries(test_constructors bignum)
@@ -19,3 +19,6 @@ target_link_libraries(test_mult bignum)
 
 add_executable(test_io tests/test_io.cpp)
 target_link_libraries(test_io bignum)
+
+add_executable(test_division tests/test_division.cpp)
+target_link_libraries(test_division bignum)

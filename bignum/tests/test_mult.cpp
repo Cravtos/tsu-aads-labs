@@ -1,4 +1,4 @@
-#include "../bignum.h"
+#include "../include/bignum.h"
 
 #include <iostream>
 #include <random>
@@ -7,26 +7,27 @@
 using namespace std;
 
 int main() {
-    ssize_t N = 100000;
+    ssize_t N = 1000;
 
     thread_local static mt19937 mt(static_cast<uint32_t>(time(nullptr)));
     while (N --> 0) {
-        BigNum f(30, RANDOM);
-        BigNum s(30, RANDOM);
+        BigNum f(mt() % 1000, RANDOM);
+        BigNum s(mt() % 1000, RANDOM);
 
-//        f.factors[3] = 0;
-//        f.factors[6] = 0;
-//        f.factors[13] = 0;
-//
-//        s.factors[15] = 0;
-//        s.factors[8] = 0;
-//        s.factors[17] = 0;
+        BigNum f_copy = f;
 
-        std::cout << "f: " << f << std::endl;
-        std::cout << "s: " << s << std::endl;
+        f *= s;
+        try {
+            f /= s;
+        } catch (const overflow_error& e) {
+            continue;
+        }
 
-        std::cout << "f * s: " << f * s << std::endl;
-
-        // TODO: multiplication -> division test
+        if (f_copy != f) {
+            cout << "Failed test with: " << endl;
+            cout << "f: " << f_copy << endl;
+            cout << "s: " << s << endl;
+            cout << "res: " << f << endl << endl;
+        }
     }
 }

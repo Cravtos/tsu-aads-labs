@@ -9,6 +9,7 @@ typedef uint64_t ext_base_t;
 typedef int64_t ext_sbase_t;
 
 const uint32_t base_size = sizeof(base_t) * 8;
+const ext_base_t base = (2LL << (base_size - 1));
 
 const uint32_t ZERO = 0;
 const uint32_t RANDOM = 1;
@@ -23,7 +24,7 @@ public:
     BigNum();
 
     // Convert base_t to BigNum
-    BigNum(base_t num);
+    explicit BigNum(base_t num);
 
     // Create number with specified size.
     // If fill == ZERO, created number equal 0,
@@ -31,7 +32,7 @@ public:
     BigNum(size_t size, uint32_t fill);
 
     // num - string containing number in hex
-    BigNum(const std::string& num);
+    explicit BigNum(const std::string& num);
     BigNum(const BigNum& bn);
     BigNum& operator=(const BigNum& bn);
 
@@ -63,8 +64,8 @@ public:
     BigNum operator-(const BigNum& bn) const;
     BigNum& operator-=(const BigNum& bn);
 
-    operator base_t() const;
-    operator ext_base_t() const;
+    explicit operator base_t() const;
+    explicit operator ext_base_t() const;
 
     bool operator==(const BigNum& bn) const;
     bool operator!=(const BigNum& bn) const;

@@ -1,4 +1,4 @@
-#include "../bignum.h"
+#include "../include/bignum.h"
 
 #include <iostream>
 using namespace std;

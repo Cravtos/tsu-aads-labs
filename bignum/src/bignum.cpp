@@ -1,108 +1,4 @@
-#include "bignum.h"
-
-#include <iomanip>
-#include <random>
-#include <string>
-#include <algorithm>
-
-std::mt19937& mt()
-{
-    // initialize once per thread
-    thread_local static std::mt19937 mt(static_cast<uint32_t>(time(nullptr)));
-    return mt;
-}
-
-BigNum::BigNum(): size(1), cap(1)
-{
-    factors = new base_t[cap];
-    for (size_t i = 0; i < cap; i++) {
-        factors[i] = 0;
-    }
-}
-
-BigNum::BigNum(base_t num): size(1), cap(1)
-{
-    factors = new base_t[cap];
-    factors[0] = num;
-}
-
-BigNum::BigNum(size_t cap, uint32_t fill)
-{
-    if (cap == 0) {
-        cap = 1;
-        fill = ZERO;
-    }
-
-    this->size = cap;
-    this->cap = cap;
-    factors = new base_t[cap];
-
-    if (fill != RANDOM) { // fill == ZERO
-        this->size = 1;
-        for (size_t i = 0; i < cap; i++) {
-            factors[i] = 0;
-        }
-    }
-
-    if (fill == RANDOM) {
-        thread_local static std::mt19937 mersenne = mt();
-
-        for (size_t i = 0; i < cap; i++) {
-            factors[i] = mersenne();
-        }
-
-        trim();
-    }
-}
-
-BigNum::BigNum(const std::string& num)
-{
-    factors = nullptr;
-    size = cap = 0;
-
-    std::stringstream is;
-    is << num;
-    is >> *this;
-}
-
-BigNum::BigNum(const BigNum& bn)
-{
-    size = bn.size;
-    cap = bn.cap;
-    factors = new base_t[cap];
-
-    for (size_t i = 0; i < cap; i++) {
-        factors[i] = bn.factors[i];
-    }
-}
-
-BigNum::~BigNum()
-{
-    delete[] factors;
-
-    size = 0;
-    cap = 0;
-    factors = nullptr;
-}
-
-BigNum& BigNum::operator=(const BigNum& bn)
-{
-    if (this == &bn) {
-        return *this;
-    }
-
-    this->~BigNum();
-
-    size = bn.size;
-    cap = bn.cap;
-    factors = new base_t[cap];
-
-    for (size_t i = 0; i < cap; i++) {
-        factors[i] = bn.factors[i];
-    }
-
-    return *this;
-}
+#include "../include/bignum.h"
 
 BigNum BigNum::operator+(const BigNum& bn) const {
     size_t smaller_size;
@@ -237,8 +133,7 @@ BigNum& BigNum::operator+=(base_t n) {
     return *this;
 }
 
-BigNum BigNum::operator*(const BigNum& bn) const
-{
+BigNum BigNum::operator*(const BigNum& bn) const {
     BigNum res(size + bn.size, ZERO);
     res.size = size + bn.size;
 
@@ -264,14 +159,12 @@ BigNum BigNum::operator*(const BigNum& bn) const
     return res;
 }
 
-BigNum& BigNum::operator*=(const BigNum& bn)
-{
+BigNum& BigNum::operator*=(const BigNum& bn) {
     *this = *this * bn;
     return *this;
 }
 
-BigNum BigNum::operator*(base_t n) const
-{
+BigNum BigNum::operator*(base_t n) const {
     BigNum res(size + 1, ZERO);
     res.size = size + 1;
 
@@ -300,10 +193,96 @@ BigNum& BigNum::operator*=(base_t n) {
 }
 
 BigNum BigNum::operator/(const BigNum& bn) const {
-    return *this;
+    if (*this < bn) {
+        return BigNum(0);
+    } else if (bn.size == 1) {
+        return *this / bn.factors[0];
+    } else if (*this == bn) {
+        return BigNum(1);
+    }
+
+    BigNum res(size - bn.size + 1, ZERO);
+    res.size = size - bn.size + 1;
+
+    // Normalization
+    base_t d = base / (bn.factors[bn.size - 1] + 1);
+    BigNum u = *this * d;
+    BigNum v = bn * d;
+
+    if (this->size == u.size) {
+        if (u.size == u.cap) {
+            u.resize(u.cap + 1);
+        }
+        u.factors[this->size] = 0;
+        u.size = this->size + 1;
+    }
+
+    for (auto j = ssize_t(size - bn.size); j >= 0; j--) {
+        // Calculate q
+        ext_base_t two_factors = (ext_base_t(u.factors[j + v.size]) << base_size) + u.factors[j + v.size - 1];
+        ext_base_t q = two_factors / v.factors[v.size - 1];
+        ext_base_t rem = two_factors % v.factors[v.size - 1];
+
+        if (q == base || q * v.factors[v.size - 2] > base * rem + u.factors[j + v.size - 2]) {
+            q -= 1;
+            rem += v.factors[v.size - 1];
+
+            if (rem < base
+                    && (q == base
+                            || q * v.factors[v.size - 2] > base * rem + u.factors[j + v.size - 2])) {
+                q -= 1;
+            }
+        }
+
+        // Multiple and subtract
+        BigNum subtrahend = BigNum(q) * v;
+
+        // Subtract
+        ext_sbase_t tmp;
+        uint8_t carry = 0;
+        size_t min_size = (bn.size + 1 > subtrahend.size) ? (subtrahend.size) : (bn.size + 1);
+        for (size_t i = 0; i < min_size; i++) {
+            tmp = ext_sbase_t(u.factors[j + i]) - subtrahend.factors[i] - carry;
+            u.factors[j + i] = tmp; // % base
+
+            carry = 0;
+            if (tmp < 0) {
+                carry = 1;
+            }
+        }
+
+        // Handle carryovers
+        for (size_t i = min_size; carry && i < bn.size + 1; i++) {
+            tmp = ext_sbase_t(u.factors[j + i]) - carry;
+            u.factors[j + i] = tmp; // % base
+
+            carry = 0;
+            if (tmp < 0) {
+                carry = 1;
+            }
+        }
+
+        if (carry != 0) {
+            // Compensation
+            q -= 1;
+            base_t to_next = 0;
+            for (size_t i = 0; i < v.size; i++) {
+                tmp = u.factors[j + i] + v.factors[i] + to_next;
+                u.factors[j + i] = tmp; // % base
+                to_next = tmp >> base_size;
+            }
+            u.factors[v.size + j] += to_next;
+        }
+
+        res.factors[j] = q;
+    }
+
+    // BigNum rem = u / d;
+    return res.trim();
 }
 
 BigNum& BigNum::operator/=(const BigNum& bn) {
+    *this = *this / bn;
     return *this;
 }
 
@@ -332,10 +311,95 @@ BigNum& BigNum::operator/=(base_t n) {
 }
 
 BigNum BigNum::operator%(const BigNum& bn) const {
-    return *this;
+    if (*this < bn) {
+        return *this;
+    } else if (*this == bn) {
+        return BigNum(0);
+    } else if (bn.size == 1) {
+        return *this % bn.factors[0];
+    }
+
+    BigNum res(size - bn.size + 1, ZERO);
+    res.size = size - bn.size;
+
+    // Normalization
+    base_t d = base / (bn.factors[bn.size - 1] + 1);
+    BigNum u = *this * d;
+    BigNum v = bn * d;
+    if (this->size == u.size) {
+        if (u.size == u.cap) {
+            u.resize(u.cap + 1);
+        }
+        u.factors[this->size] = 0;
+        u.size = this->size + 1;
+    }
+
+    for (auto j = ssize_t(this->size - bn.size); j >= 0; j--) {
+        // Calculate q
+        ext_base_t two_factors = (ext_base_t(u.factors[j + v.size]) << base_size) + u.factors[j + v.size - 1];
+        ext_base_t q = two_factors / v.factors[v.size - 1];
+        ext_base_t rem = two_factors % v.factors[v.size - 1];
+
+        if (q == base || q * v.factors[v.size - 2] > base * rem + u.factors[j + v.size - 2]) {
+            q -= 1;
+            rem += v.factors[v.size - 1];
+
+            if (rem < base
+                    && (q == base
+                            || q * v.factors[v.size - 2] > base * rem + u.factors[j + v.size - 2])) {
+                q -= 1;
+            }
+        }
+
+        // Multiple and subtract
+        BigNum subtrahend = BigNum(q) * v;
+
+        // Subtract
+        ext_sbase_t tmp;
+        uint8_t carry = 0;
+        size_t min_size = (bn.size + 1 > subtrahend.size) ? (subtrahend.size) : (bn.size + 1);
+        for (size_t i = 0; i < min_size; i++) {
+            tmp = ext_sbase_t(u.factors[j + i]) - subtrahend.factors[i] - carry;
+            u.factors[j + i] = tmp; // % base
+
+            carry = 0;
+            if (tmp < 0) {
+                carry = 1;
+            }
+        }
+
+        // Handle carryovers
+        for (size_t i = min_size; carry && i < bn.size + 1; i++) {
+            tmp = ext_sbase_t(u.factors[j + i]) - carry;
+            u.factors[j + i] = tmp; // % base
+
+            carry = 0;
+            if (tmp < 0) {
+                carry = 1;
+            }
+        }
+
+        if (carry != 0) {
+            // Compensation
+            q -= 1;
+            base_t to_next = 0;
+            for (size_t i = 0; i < v.size; i++) {
+                tmp = u.factors[j + i] + v.factors[i] + to_next;
+                u.factors[j + i] = tmp; // % base
+                to_next = tmp >> base_size;
+            }
+            u.factors[v.size + j] += to_next;
+        }
+
+        res.factors[j] = q;
+    }
+
+    BigNum rem = u / d;
+    return rem;
 }
 
 BigNum& BigNum::operator%=(const BigNum& bn) {
+    *this = *this % bn;
     return *this;
 }
 
@@ -359,8 +423,7 @@ BigNum& BigNum::operator%=(base_t n) {
     return *this;
 }
 
-BigNum BigNum::operator-(const BigNum& bn) const
-{
+BigNum BigNum::operator-(const BigNum& bn) const {
     if (*this < bn) {
         throw std::invalid_argument("first value should be bigger than second to subtract");
     }
@@ -394,8 +457,7 @@ BigNum BigNum::operator-(const BigNum& bn) const
     return res;
 }
 
-BigNum& BigNum::operator-=(const BigNum& bn)
-{
+BigNum& BigNum::operator-=(const BigNum& bn) {
     if (*this < bn) {
         throw std::invalid_argument("first value should be bigger than second to subtract");
     }
@@ -424,232 +486,4 @@ BigNum& BigNum::operator-=(const BigNum& bn)
 
     trim();
     return *this;
-}
-
-void BigNum::print(std::ostream& os) const {
-    if (*this == BigNum(0)) {
-        os << "0";
-        return;
-    }
-
-    BigNum tmp = *this;
-    std::string res;
-
-    while (tmp != BigNum(0)) {
-        res += char('0' + base_t(tmp % base_t(10)));
-        tmp /= 10;
-    }
-
-    std::reverse(res.begin(), res.end());
-    os << res;
-}
-
-BigNum bn_read(std::istream& is) {
-    BigNum res(0);
-
-    std::string in;
-    is >> in;
-
-    std::string::iterator it;
-    for (it = in.begin(); it != in.end(); it++) {
-        if (*it < '0' || *it > '9') {
-            throw std::invalid_argument("not decimal number given");
-        }
-
-        res = res * base_t(10) + base_t(*it - '0');
-    }
-
-    return res;
-}
-
-size_t hex(char c) {
-    if (c >= '0' && c <= '9') {
-        return c - '0';
-    }
-
-    if (c >= 'a' && c <= 'f') {
-        return c - 'a' + 10;
-    }
-
-    if (c >= 'A' && c <= 'F') {
-        return c - 'A' + 10;
-    }
-
-    throw std::invalid_argument("not a hex value");
-}
-
-void trim(std::string& s) {
-    size_t beg = 0;
-    size_t end = s.length();
-    while (beg != end - 1 && s[beg] == '0') {
-        beg++;
-    }
-    s = s.substr(beg, end);
-}
-
-std::istream& operator>>(std::istream& is, BigNum& bn)
-{
-    std::string s;
-    is >> s;
-    trim(s);
-
-    bn.~BigNum();
-
-    size_t len = s.length();
-    size_t d = sizeof(base_t) * 2; // amount of digits in one base_t
-    bn.size = (len / d) + (len % d > 0);
-    bn.cap = bn.size;
-
-    bn.factors = new base_t[bn.cap];
-    for (size_t i = 0; i < bn.size; i++) {
-            bn.factors[i] = 0;
-    }
-
-    // Fill everything but last factor
-    for (size_t fi = 0; fi < bn.size - 1; fi++) {
-        for (size_t si = 0; si < d; si++) {
-            size_t idx = len - 1 - (si + fi * d);
-            bn.factors[fi] |= hex(s[idx]) << (4 * si);
-        }
-    }
-
-    // Fill last factor
-    size_t bound = (len % d == 0) ? d : len % d;
-    for (size_t si = 0; si < bound; si++) {
-        size_t idx = len - 1 - (si + (bn.size - 1) * d);
-        bn.factors[bn.size - 1] |= hex(s[idx]) << (4 * si);
-    }
-
-    return is;
-}
-
-std::ostream& operator<<(std::ostream& os, const BigNum& bn)
-{
-    os << std::hex << std::uppercase;
-    size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
-    for (ssize_t i = ssize_t(bn.size) - 1; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(int(digits)) << uint32_t(bn.factors[i]);
-    }
-
-    os << std::dec;
-    return os;
-}
-
-BigNum& BigNum::resize(size_t new_cap) {
-     auto* new_factors = new base_t[new_cap];
-
-     // Copy old values
-     size_t new_size = (new_cap > size) ? size : new_cap;
-     for (size_t i = 0; i < new_size; i++) {
-         new_factors[i] = factors[i];
-     }
-
-     // Null new values (if any)
-     for (size_t i = new_size; i < new_cap; i++) {
-         new_factors[i] = 0;
-     }
-
-     this->~BigNum();
-     factors = new_factors;
-     cap = new_cap;
-     size = new_size;
-
-     return *this;
-}
-
-bool BigNum::operator==(const BigNum& bn) const
-{
-    if (bn.size != size) {
-        return false;
-    }
-
-    for (size_t i = 0; i < size; i++) {
-        if (factors[i] != bn.factors[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool BigNum::operator>(const BigNum& bn) const
-{
-    if (size > bn.size) {
-        return true;
-    }
-
-    if (size < bn.size) {
-        return false;
-    }
-
-    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
-        if (factors[i] < bn.factors[i]) {
-            return false;
-        }
-
-        if (factors[i] > bn.factors[i]) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool BigNum::operator<(const BigNum& bn) const
-{
-    if (size < bn.size) {
-        return true;
-    }
-
-    if (size > bn.size) {
-        return false;
-    }
-
-    for (ssize_t i = ssize_t(size) - 1; i >= 0; i--) {
-        if (factors[i] > bn.factors[i]) {
-            return false;
-        }
-
-        if (factors[i] < bn.factors[i]) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool BigNum::operator!=(const BigNum& bn) const
-{
-    return !(*this == bn);
-}
-
-bool BigNum::operator<=(const BigNum& bn) const
-{
-    return !(*this > bn);
-}
-
-bool BigNum::operator>=(const BigNum& bn) const
-{
-    return !(*this < bn);
-}
-
-BigNum& BigNum::trim() {
-    while (size != 1 && factors[size - 1] == 0) {
-        size--;
-    }
-
-    return *this;
-}
-
-BigNum::operator base_t() const
-{
-    return factors[0];
-}
-
-BigNum::operator ext_base_t() const
-{
-    ext_base_t res = factors[0];
-    if (size == 1)
-        return res;
-    return res | (ext_base_t(factors[1]) << base_size);
 }
