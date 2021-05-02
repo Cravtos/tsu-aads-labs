@@ -319,9 +319,6 @@ BigNum BigNum::operator%(const BigNum& bn) const {
         return *this % bn.factors[0];
     }
 
-    BigNum res(size - bn.size + 1, ZERO);
-    res.size = size - bn.size;
-
     // Normalization
     base_t d = base / (bn.factors[bn.size - 1] + 1);
     BigNum u = *this * d;
@@ -381,7 +378,6 @@ BigNum BigNum::operator%(const BigNum& bn) const {
 
         if (carry != 0) {
             // Compensation
-            q -= 1;
             base_t to_next = 0;
             for (size_t i = 0; i < v.size; i++) {
                 tmp = u.factors[j + i] + v.factors[i] + to_next;
@@ -390,8 +386,6 @@ BigNum BigNum::operator%(const BigNum& bn) const {
             }
             u.factors[v.size + j] += to_next;
         }
-
-        res.factors[j] = q;
     }
 
     BigNum rem = u / d;

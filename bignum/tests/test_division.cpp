@@ -8,7 +8,7 @@ using namespace std;
 
 int main() {
     const ssize_t M = 1000;
-    ssize_t N = 1000;
+    ssize_t N = 3000;
 
 
     thread_local static mt19937 mt(static_cast<uint32_t>(time(nullptr)));
