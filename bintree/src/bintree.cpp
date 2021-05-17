@@ -168,6 +168,8 @@ void BST::del(int32_t key) {
             } else {
                 parent->right = nullptr;
             }
+        } else if (to_delete->left == nullptr && to_delete->right == nullptr) {
+            root = nullptr;
         }
         delete to_delete;
         return;
