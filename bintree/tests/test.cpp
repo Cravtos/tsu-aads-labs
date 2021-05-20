@@ -12,18 +12,15 @@ int main() {
     }
 
     cout << "Random BST: " << endl;
-    bst.print(cout);
-    cout << endl << endl;
+    cout << bst << endl << endl;
 
     BST copy(bst);
     cout << "Copy of random BST: " << endl;
-    copy.print(cout);
-    cout << endl << endl;
+    cout << copy << endl << endl;
 
     bst = copy;
     cout << "Assigned from copy of random BST: " << endl;
-    bst.print(cout);
-    cout << endl << endl;
+    cout << bst << endl << endl;
 
     std::string action = "x";
     cout << "[a]dd, [d]elete, [f]ind, [p]rint, [q]uit" << endl;
@@ -35,7 +32,7 @@ int main() {
 
         if (action == "a") {
             int32_t key;
-            cout << "Enter key:";
+            // cout << "Enter key:";
             cin >> key;
 
             bst.add(key);
@@ -83,19 +80,17 @@ int main() {
 
         } else if (action == "d") {
             int32_t key;
-            cout << "Enter key:";
+            // cout << "Enter key:";
             cin >> key;
 
             bst.del(key);
 
         } else if (action == "p") {
-            cout << endl;
-            bst.print(cout);
-            cout << endl << endl;
+            cout << endl << bst << endl << endl;
 
         } else if (action == "f") {
             int32_t key;
-            cout << "Enter key:";
+            // cout << "Enter key:";
             cin >> key;
 
             Node* node = bst.search(key);

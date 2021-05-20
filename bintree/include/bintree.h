@@ -18,20 +18,10 @@ public:
     }
 
     friend class BST;
-
 private:
     // those functions are related to BST
     friend void rec_delete(Node* node);
     friend void rec_copy(Node* from, Node* to);
-
-    friend std::string print_pre_order(Node* node);
-    friend void print_nodes(
-            std::stringstream& res,
-            const std::string& padding,
-            const std::string& ptr,
-            Node* node,
-            bool has_right_sibling);
-
     friend void rec_trav_in_order(std::list<Node*>& list, Node* node);
     friend void rec_trav_pre_order(std::list<Node*>& list, Node* node);
     friend void rec_trav_rev_in_order(std::list<Node*>& list, Node* node);
@@ -47,8 +37,7 @@ public:
     BST(const BST& from);
     ~BST();
 
-    void print(std::ostream& os) const;
-
+    Node* get_root() const;
     Node* get_min() const;
     Node* get_max() const;
 
@@ -63,7 +52,9 @@ public:
     Node* add(int32_t key);
     void del(int32_t key);
 
-    Node* get_root() const;
+    friend std::ostream& operator<<(std::ostream& os, const BST& bst);
+private:
+    void print(std::ostream& os, size_t spaces, Node* node) const;
 };
 
 #endif //BINTREE_BINTREE_H

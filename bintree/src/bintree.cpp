@@ -29,12 +29,12 @@ BST::BST(size_t nodes) {
     auto rand = mt();
 
     // create root
-    int32_t key = int32_t(rand()) % 100;
+    auto key = int32_t(rand() % 100);
     root = new Node(key);
     nodes--;
 
     while (nodes-- > 0) {
-        key = int32_t(rand()) % 100;
+        key = int32_t(rand() % 100);
         add(key);
     }
 }
@@ -168,7 +168,7 @@ void BST::del(int32_t key) {
             } else {
                 parent->right = nullptr;
             }
-        } else if (to_delete->left == nullptr && to_delete->right == nullptr) {
+        } else {
             root = nullptr;
         }
         delete to_delete;
@@ -212,68 +212,37 @@ void BST::del(int32_t key) {
 
 // Deletes everything starting from node
 void rec_delete(Node* node) {
-    if (node->left != nullptr) {
-        rec_delete(node->left);
+    if (node == nullptr) {
+        return;
     }
 
-    if (node->right != nullptr) {
-        rec_delete(node->right);
-    }
+    rec_delete(node->left);
+    rec_delete(node->right);
 
     delete node;
 }
 
 BST::~BST() {
-    if (root != nullptr) {
-        rec_delete(root);
-    }
+    rec_delete(root);
     root = nullptr;
 }
 
-void print_nodes(std::stringstream& res, const std::string& padding, const std::string& ptr, Node* node, bool has_right_sibling) {
+void BST::print(std::ostream& os, size_t spaces, Node* node) const {
     if (node == nullptr) {
         return;
     }
+    print(os, spaces+5, node->right);
 
-    res << std::endl;
-    res << padding;
-    res << ptr;
-    res << "(" << node->key << ")";
-
-    std::string new_padding = padding;
-    if (has_right_sibling) {
-        new_padding.append("|  ");
-    } else {
-        new_padding.append("   ");
+    for (size_t i = 0; i < spaces; i++) {
+        os << " ";
     }
+    os << node->key << std::endl;
 
-    std::string ptr_right = "'r-";
-    std::string ptr_left = (node->right != nullptr) ? "|l-" : "'l-";
-
-    print_nodes(res, new_padding, ptr_left, node->left, node->right != nullptr);
-    print_nodes(res, new_padding, ptr_right, node->right, false);
-
+    print(os, spaces+5, node->left);
 }
 
-std::string print_pre_order(Node* node) {
-    if (node == nullptr) {
-        return "";
-    }
-
-    std::stringstream res;
-    res << "(" << node->key << ")";
-
-    std::string ptr_right = "'r-";
-    std::string ptr_left = (node->right != nullptr) ? "|l-" : "'l-";
-
-    print_nodes(res, "", ptr_left, node->left, node->right != nullptr);
-    print_nodes(res, "", ptr_right, node->right, false);
-
-    return res.str();
-}
-
-void BST::print(std::ostream& os) const {
-    os << print_pre_order(root);
+std::ostream& operator<<(std::ostream& os, const BST& bst) {
+    bst.print(os, 0, bst.root);
 }
 
 Node* BST::get_min() const {
