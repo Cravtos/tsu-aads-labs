@@ -1,26 +1,26 @@
-#include "../include/bintree.h"
+#include "../include/avl.h"
 
 #include <iostream>
 
 using namespace std;
 
 int main() {
-    BST bst(10);
-    Node* root = bst.get_root();
+    AVL avl(10);
+    Node* root = avl.get_root();
     if (root != nullptr) {
-        cout << "Root value is " << root->value() << endl;
+        cout << "Root value is " << root->get_key() << endl;
     }
 
-    cout << "Random BST: " << endl;
-    cout << bst << endl << endl;
+    cout << "Random AVL: " << endl;
+    cout << avl << endl << endl;
 
-    BST copy(bst);
-    cout << "Copy of random BST: " << endl;
+    AVL copy(avl);
+    cout << "Copy of random AVL: " << endl;
     cout << copy << endl << endl;
 
-    bst = copy;
-    cout << "Assigned from copy of random BST: " << endl;
-    cout << bst << endl << endl;
+    avl = copy;
+    cout << "Assigned from copy of random AVL: " << endl;
+    cout << avl << endl << endl;
 
     std::string action = "x";
     cout << "[a]dd, [d]elete, [f]ind, [p]rint, [q]uit" << endl;
@@ -35,7 +35,7 @@ int main() {
             // cout << "Enter key:";
             cin >> key;
 
-            bst.add(key);
+            avl.add(key);
 
         } else if (action == "h") {
             cout << "[a]dd, [d]elete, [f]ind, [p]rint, [q]uit" << endl;
@@ -44,37 +44,37 @@ int main() {
 
         } else if (action == "l") {
             std::list<Node*> list;
-            bst.trav_level_order(list);
+            avl.trav_level_order(list);
 
             for (auto node : list) {
-                cout << node->value() << " ";
+                cout << node->get_key() << " ";
             }
             cout << endl;
 
         } else if (action == "i") {
             std::list<Node*> list;
-            bst.trav_in_order(list);
+            avl.trav_in_order(list);
 
             for (auto node : list) {
-                cout << node->value() << " ";
+                cout << node->get_key() << " ";
             }
             cout << endl;
 
         } else if (action == "r") {
             std::list<Node*> list;
-            bst.trav_pre_order(list);
+            avl.trav_pre_order(list);
 
             for (auto node : list) {
-                cout << node->value() << " ";
+                cout << node->get_key() << " ";
             }
             cout << endl;
 
         }  else if (action == "e") {
             std::list<Node*> list;
-            bst.trav_rev_in_order(list);
+            avl.trav_rev_in_order(list);
 
             for (auto node : list) {
-                cout << node->value() << " ";
+                cout << node->get_key() << " ";
             }
             cout << endl;
 
@@ -83,17 +83,17 @@ int main() {
             // cout << "Enter key:";
             cin >> key;
 
-            bst.del(key);
+            avl.del(key);
 
         } else if (action == "p") {
-            cout << endl << bst << endl << endl;
+            cout << endl << avl << endl << endl;
 
         } else if (action == "f") {
             int32_t key;
             // cout << "Enter key:";
             cin >> key;
 
-            Node* node = bst.search(key);
+            Node* node = avl.search(key);
 
             if (node == nullptr) {
                 cout << "Not found" << endl;
@@ -102,19 +102,19 @@ int main() {
             }
 
         } else if (action == "x") {
-            Node* max = bst.get_max();
+            Node* max = avl.get_max();
             if (max == nullptr) {
                 cout << "Not found" << endl;
             } else {
-                cout << "Max is " << max->value() << endl;
+                cout << "Max is " << max->get_key() << endl;
             }
 
         } else if (action == "n") {
-            Node* min = bst.get_min();
+            Node* min = avl.get_min();
             if (min == nullptr) {
                 cout << "Not found" << endl;
             } else {
-                cout << "Min is " << min->value() << endl;
+                cout << "Min is " << min->get_key() << endl;
             }
 
         } else if (action == "w") {
@@ -126,7 +126,7 @@ int main() {
                 cin >> arr[i];
             }
 
-            bst = BST(arr, size);
+            avl = AVL(arr, size);
             delete[] arr;
 
         } else {

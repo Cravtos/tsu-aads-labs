@@ -1,33 +1,15 @@
-#ifndef BINTREE_BINTREE_H
-#define BINTREE_BINTREE_H
+#ifndef BINTREE_BST_H
+#define BINTREE_BST_H
+
+#include <include/node.h>
 
 #include <cstdint>
 #include <ostream>
 #include <list>
 
-class Node {
-    int32_t key;
-    Node* left;
-    Node* right;
-
-public:
-    Node(int32_t key, Node* left = nullptr, Node* right = nullptr);
-
-    int32_t value() const {
-        return key;
-    }
-
-    friend class BST;
-private:
-    // those functions are related to BST
-    friend void rec_delete(Node* node);
-    friend void rec_copy(Node* from, Node* to);
-    friend void rec_trav_in_order(std::list<Node*>& list, Node* node);
-    friend void rec_trav_pre_order(std::list<Node*>& list, Node* node);
-    friend void rec_trav_rev_in_order(std::list<Node*>& list, Node* node);
-};
 
 class BST {
+protected:
     Node* root;
 
 public:
@@ -53,8 +35,8 @@ public:
     void del(int32_t key);
 
     friend std::ostream& operator<<(std::ostream& os, const BST& bst);
-private:
+protected:
     void print(std::ostream& os, size_t spaces, Node* node) const;
 };
 
-#endif //BINTREE_BINTREE_H
+#endif //BINTREE_BST_H

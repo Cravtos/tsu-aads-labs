@@ -1,19 +1,13 @@
-#include "include/bintree.h"
+#include "include/bst.h"
 
 #include <random>
 #include <ctime>
 #include <sstream>
 
-std::mt19937& mt() {
+static std::mt19937& mt() {
     // initialize once per thread
     thread_local static std::mt19937 mt(static_cast<uint32_t>(time(nullptr)));
     return mt;
-}
-
-Node::Node(int32_t key, Node* left, Node* right) {
-    this->key = key;
-    this->left = left;
-    this->right = right;
 }
 
 BST::BST() {
@@ -36,18 +30,6 @@ BST::BST(size_t nodes) {
     while (nodes-- > 0) {
         key = int32_t(rand() % 100);
         add(key);
-    }
-}
-
-void rec_copy(Node* from, Node* to) {
-    if (from->left != nullptr) {
-        to->left = new Node(from->left->key);
-        rec_copy(from->left, to->left);
-    }
-
-    if (from->right != nullptr) {
-        to->right = new Node(from->right->key);
-        rec_copy(from->right, to->right);
     }
 }
 
@@ -210,18 +192,6 @@ void BST::del(int32_t key) {
     delete replace;
 }
 
-// Deletes everything starting from node
-void rec_delete(Node* node) {
-    if (node == nullptr) {
-        return;
-    }
-
-    rec_delete(node->left);
-    rec_delete(node->right);
-
-    delete node;
-}
-
 BST::~BST() {
     rec_delete(root);
     root = nullptr;
@@ -243,6 +213,7 @@ void BST::print(std::ostream& os, size_t spaces, Node* node) const {
 
 std::ostream& operator<<(std::ostream& os, const BST& bst) {
     bst.print(os, 0, bst.root);
+    return os;
 }
 
 Node* BST::get_min() const {
@@ -287,37 +258,6 @@ void BST::trav_level_order(std::list<Node*>& list) const {
         }
     }
 }
-
-void rec_trav_in_order(std::list<Node*>& list, Node* node) {
-    if (node == nullptr) {
-        return;
-    }
-
-    rec_trav_in_order(list, node->left);
-    rec_trav_in_order(list, node->right);
-    list.push_back(node);
-}
-
-void rec_trav_pre_order(std::list<Node*>& list, Node* node) {
-    if (node == nullptr) {
-        return;
-    }
-
-    list.push_back(node);
-    rec_trav_pre_order(list, node->left);
-    rec_trav_pre_order(list, node->right);
-}
-
-void rec_trav_rev_in_order(std::list<Node*>& list, Node* node) {
-    if (node == nullptr) {
-        return;
-    }
-
-    rec_trav_rev_in_order(list, node->right);
-    rec_trav_rev_in_order(list, node->left);
-    list.push_back(node);
-}
-
 
 void BST::trav_in_order(std::list<Node*>& list) const {
     rec_trav_in_order(list, root);
