@@ -522,7 +522,7 @@ BigNum BigNum::fast_sq() const {
 //            to_next = tmp >> base_size;
 //            res.factors[i + size + k] = tmp; // % base;
 //        }
-        auto y = (uint32_t*) &res.factors[i+size];
+        auto y = (ext_base_t*) &res.factors[i+size];
         *y += cuv >> base_size;
     }
 

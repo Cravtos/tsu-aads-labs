@@ -68,8 +68,8 @@ int main() {
         using std::chrono::duration;
         using std::chrono::milliseconds;
 
-        ssize_t N = 60;
-        ssize_t M = 2500;
+        ssize_t N = 100;
+        ssize_t M = 5000;
         auto t1 = high_resolution_clock::now();
         for (size_t i = 0; i < N; i++) {
             BigNum f(M, RANDOM);
