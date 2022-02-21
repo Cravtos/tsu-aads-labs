@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iostream>
 
-typedef uint32_t base_t;
+typedef uint16_t base_t; // fast_sq won't work with base_t having more than 16 bits
 typedef uint64_t ext_base_t;
 typedef int64_t ext_sbase_t;
 
@@ -35,6 +35,7 @@ public:
     explicit BigNum(const std::string& num);
     BigNum(const BigNum& bn);
     BigNum& operator=(const BigNum& bn);
+    BigNum& operator=(const base_t& bn);
 
     ~BigNum();
 
@@ -63,6 +64,8 @@ public:
 
     BigNum operator-(const BigNum& bn) const;
     BigNum& operator-=(const BigNum& bn);
+
+    BigNum fast_sq() const;
 
     explicit operator base_t() const;
     explicit operator ext_base_t() const;

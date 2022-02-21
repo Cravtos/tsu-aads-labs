@@ -188,7 +188,27 @@ BigNum BigNum::operator*(base_t n) const {
 }
 
 BigNum& BigNum::operator*=(base_t n) {
-    *this = *this * n;
+    if (size + 1 > cap) {
+        this->resize(size+2);
+    }
+
+    ext_base_t tmp;
+    base_t to_next = 0;
+    for (size_t i = 0; i < size; i++) {
+        if (factors[i] == 0) {
+            factors[i] = to_next;
+            to_next = 0;
+            continue;
+        }
+        tmp = ext_base_t(factors[i]) * ext_base_t(n) + to_next;
+        factors[i] = tmp; // % base;
+        to_next = tmp >> base_size;
+    }
+
+    factors[size] = to_next;
+    size += 1;
+
+    trim();
     return *this;
 }
 
@@ -480,4 +500,32 @@ BigNum& BigNum::operator-=(const BigNum& bn) {
 
     trim();
     return *this;
+}
+
+BigNum BigNum::fast_sq() const {
+    BigNum res(2 * size, ZERO);
+    res.size = 2 * size; // because after ZERO-fill size will be automatically trimmed to 1
+
+    for (size_t i = 0; i < size; i++) {
+        ext_base_t cuv = res.factors[2 * i] + ext_base_t(factors[i]) * factors[i];
+        res.factors[2 * i] = cuv; // % base;
+
+        for (size_t j = i + 1; j < size; j++) {
+            cuv = res.factors[i + j] + ext_base_t(2) * factors[i] * factors[j] + (cuv >> base_size);
+            res.factors[i + j] = cuv; // % base;
+        }
+
+//        base_t to_next = 0;
+//        for (size_t k = 0; k < 2; k++) {
+//            cuv >>= base_size;
+//            ext_base_t tmp = ext_base_t(res.factors[i + size + k]) + (cuv&(base-1)) + to_next;
+//            to_next = tmp >> base_size;
+//            res.factors[i + size + k] = tmp; // % base;
+//        }
+        auto y = (uint32_t*) &res.factors[i+size];
+        *y += cuv >> base_size;
+    }
+
+    res.trim();
+    return res;
 }

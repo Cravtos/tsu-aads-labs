@@ -89,6 +89,12 @@ BigNum& BigNum::operator=(const BigNum& bn) {
     return *this;
 }
 
+BigNum& BigNum::operator=(const base_t& bn) {
+    size = 1;
+    factors[0] = bn;
+    return *this;
+}
+
 BigNum::~BigNum() {
     delete[] factors;
 
