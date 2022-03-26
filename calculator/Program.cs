@@ -301,12 +301,14 @@ class Lexer
     private readonly string input;
     private int pos;
     private bool nextUnary;
+    private bool prevIsNumber;
 
     public Lexer(string input)
     {
         this.input = input;
         this.pos = 0;
         this.nextUnary = true;
+        this.prevIsNumber = false;
     }
 
     public bool HasNext()
@@ -325,6 +327,7 @@ class Lexer
             switch (input[pos])
             {
                 case '+':
+                    prevIsNumber = false;
                     pos++;
 
                     if (nextUnary)
@@ -336,6 +339,7 @@ class Lexer
                     return new Operation("+", priority: 1);
 
                 case '-':
+                    prevIsNumber = false;
                     pos++;
 
                     // Обрабатываем унарный минус
@@ -348,21 +352,25 @@ class Lexer
                     return new Operation("-", priority: 1);
 
                 case '*':
+                    prevIsNumber = false;
                     nextUnary = true;
                     pos++;
                     return new Operation("*", priority: 2);
 
                 case '/':
+                    prevIsNumber = false;
                     nextUnary = true;
                     pos++;
                     return new Operation("/", priority: 2);
 
                 case '(':
+                    prevIsNumber = false;
                     nextUnary = true;
                     pos++;
                     return new Operation("(", priority: 4);
 
                 case ')':
+                    prevIsNumber = false;
                     nextUnary = false;
                     pos++;
                     return new Operation(")", priority: 4);
@@ -374,6 +382,14 @@ class Lexer
                 case ',':
                     // Считываем дробную часть
                     nextUnary = false;
+
+                    // Если считали два числа подряд -- бросаем исключение
+                    if (prevIsNumber)
+                    {
+                        throw new InvalidOperationException("missing operation!");
+                    }
+                    prevIsNumber = true;
+
                     int start_pos = pos;
                     pos += 1;
                     while (pos < input.Length && char.IsDigit(input[pos]))
@@ -391,6 +407,13 @@ class Lexer
                     // Если не число -- возвращаем ошибку
                     if (!char.IsNumber(input[pos]))
                         throw new ArgumentException($"unknown symbol: {input[pos]}");
+
+                    // Если считали два числа подряд -- бросаем исключение
+                    if (prevIsNumber)
+                    {
+                        throw new InvalidOperationException("missing operation!");
+                    }
+                    prevIsNumber = true;
 
                     // Считываем число
                     start_pos = pos;
