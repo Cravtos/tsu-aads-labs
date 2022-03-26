@@ -194,16 +194,19 @@ double evaluate(Queue<INode> expr)
                     lhs = numbers.Pop();
                     numbers.Push(lhs + rhs);
                     break;
+
                 case "-":
                     rhs = numbers.Pop();
                     lhs = numbers.Pop();
                     numbers.Push(lhs - rhs);
                     break;
+
                 case "*":
                     rhs = numbers.Pop();
                     lhs = numbers.Pop();
                     numbers.Push(lhs * rhs);
                     break;
+
                 case "/":
                     rhs = numbers.Pop();
                     lhs = numbers.Pop();
@@ -212,6 +215,17 @@ double evaluate(Queue<INode> expr)
                         throw new DivideByZeroException("can't divide by zero");
                     }
                     numbers.Push(lhs / rhs);
+                    break;
+
+                case "-u":
+                    rhs = numbers.Pop();
+                    numbers.Push(-rhs);
+                    break;
+
+                case "+u":
+                    // Можем ничего не делать
+                    // rhs = numbers.Pop();
+                    //numbers.Push(+rhs);
                     break;
             }
         }
@@ -286,11 +300,13 @@ class Lexer
 {
     private readonly string input;
     private int pos;
+    private bool nextUnary;
 
     public Lexer(string input)
     {
         this.input = input;
         this.pos = 0;
+        this.nextUnary = true;
     }
 
     public bool HasNext()
@@ -310,28 +326,54 @@ class Lexer
             {
                 case '+':
                     pos++;
+
+                    if (nextUnary)
+                    {
+                        return new Operation("+u", priority: 3, associativity: "right");
+                    }
+
+                    nextUnary = true;
                     return new Operation("+", priority: 1);
+
                 case '-':
                     pos++;
+
+                    // Обрабатываем унарный минус
+                    if (nextUnary)
+                    {
+                        return new Operation("-u", priority: 3, associativity: "right");
+                    }
+
+                    nextUnary = true;
                     return new Operation("-", priority: 1);
+
                 case '*':
+                    nextUnary = true;
                     pos++;
                     return new Operation("*", priority: 2);
+
                 case '/':
+                    nextUnary = true;
                     pos++;
                     return new Operation("/", priority: 2);
+
                 case '(':
+                    nextUnary = true;
                     pos++;
-                    return new Operation("(", priority: 3);
+                    return new Operation("(", priority: 4);
+
                 case ')':
+                    nextUnary = false;
                     pos++;
-                    return new Operation(")", priority: 3);
+                    return new Operation(")", priority: 4);
+
                 case ' ':
                     pos++;
                     break;
 
                 case ',':
                     // Считываем дробную часть
+                    nextUnary = false;
                     int start_pos = pos;
                     pos += 1;
                     while (pos < input.Length && char.IsDigit(input[pos]))
@@ -344,6 +386,8 @@ class Lexer
                     return new Number(number);
 
                 default:
+                    nextUnary = false;
+
                     // Если не число -- возвращаем ошибку
                     if (!char.IsNumber(input[pos]))
                         throw new ArgumentException($"unknown symbol: {input[pos]}");
