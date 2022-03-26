@@ -24,7 +24,8 @@ public:
     BigNum();
 
     // Convert base_t to BigNum
-    explicit BigNum(base_t num);
+    BigNum(base_t num);
+    explicit BigNum(ext_base_t num);
 
     // Create number with specified size.
     // If fill == ZERO, created number equal 0,
@@ -69,6 +70,8 @@ public:
     BigNum pow(const BigNum& n) const;
     BigNum stupid_pow(const BigNum& n) const;
 
+    BigNum barret_mod(const BigNum& n, const BigNum& z) const;
+
     size_t bits() const;
     bool bit(size_t i) const;
 
@@ -93,6 +96,14 @@ private:
 
     // Remove leading zeros.
     BigNum& trim();
+
+    // Shift i factors to right.
+    BigNum shrf(size_t i) const;
+
+    // Shift i factors to left.
+    BigNum shlf(size_t i) const;
+
+    friend BigNum get_barret_z(const BigNum& mod);
 };
 
 BigNum bn_read(std::istream& is);

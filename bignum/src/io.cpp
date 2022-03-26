@@ -4,7 +4,7 @@
 #include <iomanip>
 
 void BigNum::print(std::ostream& os) const {
-    if (*this == BigNum(0)) {
+    if (*this == BigNum((base_t) 0)) {
         os << "0";
         return;
     }
@@ -12,7 +12,7 @@ void BigNum::print(std::ostream& os) const {
     BigNum tmp = *this;
     std::string res;
 
-    while (tmp != BigNum(0)) {
+    while (tmp != BigNum((base_t) 0)) {
         res += char('0' + base_t(tmp % base_t(10)));
         tmp /= 10;
     }
@@ -22,7 +22,7 @@ void BigNum::print(std::ostream& os) const {
 }
 
 BigNum bn_read(std::istream& is) {
-    BigNum res(0);
+    BigNum res((base_t) 0);
 
     std::string in;
     is >> in;

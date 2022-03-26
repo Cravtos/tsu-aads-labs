@@ -47,3 +47,31 @@ bool BigNum::bit(size_t i) const {
     size_t factor = i / bits_in_factor;
     return (factors[factor] >> (i % bits_in_factor)) & 1;
 }
+
+BigNum BigNum::shrf(size_t i) const {
+    size_t new_size = (i > size) ? 0 : size - i;
+    BigNum res(new_size, ZERO);
+    res.size = new_size;
+    for (size_t factor = 0; factor < new_size; factor++) {
+        res.factors[factor] = factors[factor+i];
+    }
+    return res;
+}
+
+BigNum BigNum::shlf(size_t i) const {
+    size_t new_size = i + size;
+    BigNum res(new_size, ZERO);
+    res.size = new_size;
+    for (size_t factor = i; factor < new_size; factor++) {
+        res.factors[factor] = factors[factor-i];
+    }
+    return res;
+}
+
+BigNum get_barret_z(const BigNum& mod) {
+    BigNum z = BigNum(2 * mod.size + 1, ZERO);
+    z.factors[2 * mod.size] = 1;
+    z.size = 2 * mod.size + 1;
+    z /= mod;
+    return z;
+}

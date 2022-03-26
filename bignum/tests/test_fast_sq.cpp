@@ -51,7 +51,7 @@ int main() {
     }
 
     { // test 0 square
-        BigNum f(0);
+        BigNum f((base_t) 0);
         BigNum f_fast_sq = f.fast_sq();
         BigNum f_mul_f = f * f;
         if (f_fast_sq != f_mul_f) {

@@ -24,6 +24,14 @@ BigNum::BigNum(base_t num)
     factors[0] = num;
 }
 
+BigNum::BigNum(ext_base_t num)
+        :size(2), cap(2) {
+    factors = new base_t[cap];
+    factors[0] = num;
+    factors[1] = num >> base_size;
+    trim();
+}
+
 BigNum::BigNum(size_t cap, uint32_t fill) {
     if (cap == 0) {
         cap = 1;

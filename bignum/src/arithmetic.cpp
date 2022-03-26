@@ -37,7 +37,7 @@ BigNum BigNum::operator+(const BigNum& bn) const {
         to_next = tmp >> base_size;
     }
 
-    // last carryover is here because there are not ranks left in the bigger number
+    // last carryover is here because there are no ranks left in the bigger number
     if (to_next != 0) {
         res.factors[bigger_size] = to_next;
         res.size++;
@@ -83,7 +83,7 @@ BigNum& BigNum::operator+=(const BigNum& bn) {
 
     size = bigger_size;
 
-    // last carryover is here because there are not ranks left in the bigger number
+    // last carryover is here because there are no ranks left in the bigger number
     if (to_next != 0) {
         factors[size] = to_next;
         size++;
@@ -214,11 +214,11 @@ BigNum& BigNum::operator*=(base_t n) {
 
 BigNum BigNum::operator/(const BigNum& bn) const {
     if (*this < bn) {
-        return BigNum(0);
+        return {(base_t) 0};
     } else if (bn.size == 1) {
         return *this / bn.factors[0];
     } else if (*this == bn) {
-        return BigNum(1);
+        return {(base_t) 1};
     }
 
     BigNum res(size - bn.size + 1, ZERO);
@@ -334,7 +334,7 @@ BigNum BigNum::operator%(const BigNum& bn) const {
     if (*this < bn) {
         return *this;
     } else if (*this == bn) {
-        return BigNum(0);
+        return {(base_t) 0};
     } else if (bn.size == 1) {
         return *this % bn.factors[0];
     }
@@ -429,7 +429,7 @@ BigNum BigNum::operator%(base_t n) const {
         rem = tmp % n;
     }
 
-    return BigNum(rem);
+    return {rem};
 }
 
 BigNum& BigNum::operator%=(base_t n) {
@@ -532,7 +532,7 @@ BigNum BigNum::fast_sq() const {
 
 BigNum BigNum::pow(const BigNum& n) const {
     BigNum q = BigNum(*this);
-    BigNum z(1);
+    BigNum z((base_t) 1);
     // If first bit is 1
     if (n.factors[0] & 1) {
         z = BigNum(*this);
@@ -550,11 +550,46 @@ BigNum BigNum::pow(const BigNum& n) const {
 }
 
 BigNum BigNum::stupid_pow(const BigNum& n) const {
-    BigNum i(0);
-    BigNum res(1);
+    BigNum i((base_t) 0);
+    BigNum res((base_t) 1);
     while (i < n) {
         res *= *this;
         i += 1;
     }
     return res;
+}
+
+BigNum BigNum::barret_mod(const BigNum& n, const BigNum& z) const {
+    if (size > 2 * n.size) {
+        throw std::invalid_argument("number is to big for this method to work!");
+    }
+
+    BigNum guess = shrf(n.size - 1);
+    guess *= z;
+    guess = guess.shrf(n.size + 1);
+
+    BigNum r1 = *this;
+    if (r1.size > n.size) {
+        r1.size = n.size;
+    }
+
+    BigNum r2 = guess * n;
+    if (r2.size > n.size) {
+        r2.size = n.size;
+    }
+
+    BigNum r_guess(n.size + 2, ZERO);
+    if (r1 >= r2) {
+        r_guess = r1 - r2;
+    } else {
+        r_guess.factors[n.size + 1] = 1;
+        r_guess.size = n.size + 2;
+        r_guess += r1 - r2;
+    }
+
+    while (r_guess >= n) {
+        r_guess -= n;
+    }
+
+    return r_guess;
 }
