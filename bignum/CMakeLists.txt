@@ -30,3 +30,6 @@ target_link_libraries(test_division bignum)
 
 add_executable(test_fast_sq tests/test_fast_sq.cpp)
 target_link_libraries(test_fast_sq bignum)
+
+add_executable(test_pow tests/test_pow.cpp)
+target_link_libraries(test_pow bignum)

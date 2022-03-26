@@ -66,6 +66,11 @@ public:
     BigNum& operator-=(const BigNum& bn);
 
     BigNum fast_sq() const;
+    BigNum pow(const BigNum& n) const;
+    BigNum stupid_pow(const BigNum& n) const;
+
+    size_t bits() const;
+    bool bit(size_t i) const;
 
     explicit operator base_t() const;
     explicit operator ext_base_t() const;

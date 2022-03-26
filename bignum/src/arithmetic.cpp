@@ -529,3 +529,32 @@ BigNum BigNum::fast_sq() const {
     res.trim();
     return res;
 }
+
+BigNum BigNum::pow(const BigNum& n) const {
+    BigNum q = BigNum(*this);
+    BigNum z(1);
+    // If first bit is 1
+    if (n.factors[0] & 1) {
+        z = BigNum(*this);
+    }
+
+    size_t n_bits = n.bits();
+    for (size_t i = 1; i < n_bits; i++) {
+        q = q.fast_sq();
+        if (n.bit(i)) {
+            z *= q;
+        }
+    }
+
+    return z;
+}
+
+BigNum BigNum::stupid_pow(const BigNum& n) const {
+    BigNum i(0);
+    BigNum res(1);
+    while (i < n) {
+        res *= *this;
+        i += 1;
+    }
+    return res;
+}

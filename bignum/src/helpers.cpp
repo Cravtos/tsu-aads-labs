@@ -29,3 +29,21 @@ BigNum& BigNum::trim() {
 
     return *this;
 }
+
+size_t BigNum::bits() const {
+    ssize_t bits_in_factor = sizeof(base_t) * 8;
+    for (ssize_t factor = (ssize_t) size - 1; factor >= 0; factor--) {
+        for (ssize_t bit = bits_in_factor - 1; bit >= 0; bit--) {
+            if ((factors[factor] >> bit) & 1) {
+                return factor * bits_in_factor + bit + 1;
+            }
+        }
+    }
+    return 0;
+}
+
+bool BigNum::bit(size_t i) const {
+    size_t bits_in_factor = sizeof(base_t) * 8;
+    size_t factor = i / bits_in_factor;
+    return (factors[factor] >> (i % bits_in_factor)) & 1;
+}
