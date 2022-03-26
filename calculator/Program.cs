@@ -1,13 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿// Используется алгоритм Shunting-yard (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
 
-// Используется алгоритм Shunting-yard (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
-
-// Считываем строку с выражением
-// Делаем класс парсера, который будет считывать одну ноду за раз
-// Ноды по алгоритму Shunting-yard преобразуем в постфиксную нотацию (так намного легче вычислять выражение)
-// Передаем полученный стэк в класс, который будет исполнять выражение
-
-// Итого нужны классы: INode, Lexer, Parser, Evaluator
+// Общая идея:
+// 1. Считывается очередная строка, содержащая арифметическое выражение в инфиксной нотации
+// 2. Создается класс Lexer, который разбивает строку на отдельные элементы -- токены (операции, числа, функции, и т.д.)
+// 3. Последовательность токенов в выражении преобразуем из инфиксной нотации в постфиксную
+//    по алгоритму Shunting-yard
+// 4. Вычисляем и выводим результат выражения в постфиксной нотации
 
 while (true)
 {
@@ -21,11 +19,11 @@ while (true)
             continue;
         }
 
-        // Создаем класс для разбивки выражения на отдельные элементы (ноды)
+        // Создаем класс для выделения токенов в выражении
         Lexer lexer = new Lexer(input);
 
         // Переводим инфиксную нотацию в польскую
-        Queue<INode> expr = parse(lexer);
+        Queue<IToken> expr = parse(lexer);
 
         // Вычисляем выражение
         double result = evaluate(expr);
@@ -36,7 +34,12 @@ while (true)
     // При исключениях выводим сообщения об ошибках
     catch (InvalidOperationException ex)
     {
-        Console.WriteLine("invalid input");
+        if (ex.Message.Contains("Stack empty"))
+        {
+            Console.WriteLine($"invalid input: missing number!");
+            continue;
+        }
+        Console.WriteLine($"invalid input: {ex.Message}");
     }
     catch (Exception ex)
     {
@@ -44,30 +47,30 @@ while (true)
     }
 }
 
-// Переводит строку из инфиксной нотации в префиксную
+// Переводит строку из инфиксной нотации в постфиксную
 // Используется алгоритм Shunting-yard (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
-Queue<INode> parse(Lexer lexer)
+Queue<IToken> parse(Lexer lexer)
 {
-    Queue<INode> output_queue = new Queue<INode>();
-    Stack<INode> operator_stack = new Stack<INode>();
+    Queue<IToken> output_queue = new Queue<IToken>();
+    Stack<IToken> operator_stack = new Stack<IToken>();
 
     while (lexer.HasNext())
     {
         // Число помещаем в output queue
-        INode node = lexer.NextNode();
-        if (node.GetType() == typeof(Number))
+        IToken token = lexer.NextToken();
+        if (token.GetType() == typeof(Number))
         {
-            output_queue.Enqueue(node);
+            output_queue.Enqueue(token);
             continue;
         }
 
-        // Предположительно в этом месте остается только Operation
-        if (node.GetType() != typeof(Operation))
+        // Предполагаем, что в этом месте остается только Operation
+        if (token.GetType() != typeof(Operation))
         {
-            throw new Exception("developer forgot to handle new types of Nodes");
+            throw new Exception("developer forgot to handle new types of tokens");
         }
 
-        Operation cur_op = (Operation) node;
+        Operation cur_op = (Operation) token;
 
         // Открывающую скобку помещаем в operator stack
         if (cur_op.Value == "(")
@@ -82,20 +85,21 @@ Queue<INode> parse(Lexer lexer)
         {
             do // Выполняем пока не нашли открывающую скобку
             {
-                INode top_node;
+                IToken top_token;
                 try
                 {
-                    top_node = operator_stack.Peek();
+                    top_token = operator_stack.Peek();
                 }
-                catch (InvalidOperationException ex)
+                catch (InvalidOperationException)
                 {
                     throw new InvalidOperationException("there is no opening paranthesis!");
                 }
 
                 // Проверим, не нашли ли мы открывающую скобку
-                if (top_node.GetType() == typeof(Operation))
+                if (top_token.GetType() == typeof(Operation))
                 {
-                    Operation top_op = (Operation) top_node;
+                    // Если нашли, убираем парную скобку со стека
+                    Operation top_op = (Operation) top_token;
                     if (top_op.Value == "(")
                     {
                         operator_stack.Pop();
@@ -103,42 +107,43 @@ Queue<INode> parse(Lexer lexer)
                     }
                 }
 
-                // Если не нашли, перемещаем ноду из стэка в очередь
-                output_queue.Enqueue(top_node);
+                // Если не нашли, перемещаем токен из стэка в очередь
+                output_queue.Enqueue(top_token);
                 operator_stack.Pop();
-            } while (true); // Пока не нашли открывающую скобку
+            } while (true);
             continue;
         }
 
-        // Обрабатываем Operation, не являющийся скобками
+        // Обрабатываем токен операции, не являющийся скобками
         do
         {
-            // Проверяем, есть ли на верху operator stack нода
-            INode top_node;
+            // Проверяем, есть ли на верху operator stack токен
+            IToken top_token;
             try
             {
-                top_node = operator_stack.Peek();
+                top_token = operator_stack.Peek();
             } catch (InvalidOperationException e)
             {
                 break;
             }
 
-            if (top_node.GetType() == typeof(Operation))
+            // Здесь обрабатывается приоритет операций
+            if (top_token.GetType() == typeof(Operation))
             {
-                // Проверяем, не является ли нода со стека открывающей скобкой
-                Operation top_op = (Operation)top_node;
+                // Проверяем, не является ли токен со стека открывающей скобкой
+                Operation top_op = (Operation)top_token;
                 if (top_op.Value == "(")
                 {
                     break;
                 }
 
-                // Сравниваем приоритеты нод (текущей и с верхушки стека)
+                // Сравниваем приоритеты токенов (текущего и с верхушки стека) или при их равности -- ассоциативность операции.
                 if (cur_op.Priority < top_op.Priority || (cur_op.Priority == top_op.Priority && cur_op.Associativity == "left"))
                 {
                     // Если приоритет текущей операции меньше
                     // то перемещаем операцию с верхушки стека в очередь
                     operator_stack.Pop();
-                    output_queue.Enqueue(top_node);
+                    output_queue.Enqueue(top_token);
                     continue;
                 }
 
@@ -146,47 +151,54 @@ Queue<INode> parse(Lexer lexer)
             }
         } while (operator_stack.Count > 0);
         // Помещаем текущий оператор на стек
-        operator_stack.Push(node);
+        operator_stack.Push(token);
     }
 
-    // Оставшиеся в operator stack ноды перемещаем в output queue
+    // Оставшиеся в operator stack токены перемещаем в output queue
     while (operator_stack.Count > 0)
     {
-        // Если текущая нода это скобка, значит где-то есть незакрытые скобки
-        INode top_node = operator_stack.Pop();
-        if (top_node.GetType() == typeof(Operation))
+        IToken top_token = operator_stack.Pop();
+
+        // Если текущий токен это скобка, значит где-то есть незакрытые скобки
+        if (top_token.GetType() == typeof(Operation))
         {
-            Operation top_op = (Operation) top_node;
+            Operation top_op = (Operation) top_token;
             if (top_op.Value == ")" || top_op.Value == "(")
             {
                 throw new InvalidOperationException("mismatched parentheses!");
             }
         }
-        output_queue.Enqueue(top_node);
+
+        output_queue.Enqueue(top_token);
     }
 
     return output_queue;
 }
 
-double evaluate(Queue<INode> expr)
+// Вычисляет выражение, данное в постфиксной записи
+double evaluate(Queue<IToken> expr)
 {
     Stack<double> numbers = new Stack<double>();
     double lhs = 0;
     double rhs = 0;
 
+    // Пока есть токены в выражении:
     while (expr.Count > 0)
     {
-        INode node = expr.Dequeue();
-        if (node.GetType() == typeof(Number))
+        IToken token = expr.Dequeue();
+
+        // Числа помещаем на стек
+        if (token.GetType() == typeof(Number))
         {
-            Number number = (Number) node;
+            Number number = (Number) token;
             numbers.Push(number.Value);
             continue;
         }
 
-        if (node.GetType() == typeof(Operation))
+        // Операции обрабатыаем, используя числа со стека
+        if (token.GetType() == typeof(Operation))
         {
-            Operation op = (Operation) node;
+            Operation op = (Operation) token;
             switch (op.Value)
             {
                 case "+":
@@ -235,13 +247,13 @@ double evaluate(Queue<INode> expr)
     return result;
 }
 
-// Используется как родительский класс для целых чисел, дробных чисел, функций, арифметических операций
-interface INode
+// Используется как родительский класс для чисел и операций
+interface IToken
 {
     public string ToString();
 }
 
-class Number: INode
+class Number: IToken
 {
     private readonly double value;
 
@@ -261,7 +273,7 @@ class Number: INode
     }
 }
 
-class Operation: INode
+class Operation: IToken
 {
     private readonly string value;
     private readonly uint priority;
@@ -295,12 +307,20 @@ class Operation: INode
     }
 }
 
-// Разбивает строку на ноды
+// Разбивает выражение на токены
 class Lexer 
 {
+    // Строка с арифметическим выражением
     private readonly string input;
+
+    // На какой позиции в строке находится лексер
     private int pos;
+
+    // Флаг того, что следующая операция будет унарной
     private bool nextUnary;
+
+    // Флаг того, что прошлый токен был числом
+    // Используется для обнаружений ошибок в выражении
     private bool prevIsNumber;
 
     public Lexer(string input)
@@ -320,7 +340,7 @@ class Lexer
         return false;
     }
 
-    public INode NextNode()
+    public IToken NextToken()
     {
         while (pos < input.Length)
         {
@@ -379,8 +399,8 @@ class Lexer
                     pos++;
                     break;
 
+                // Считываем дробную часть
                 case ',':
-                    // Считываем дробную часть
                     nextUnary = false;
 
                     // Если считали два числа подряд -- бросаем исключение
