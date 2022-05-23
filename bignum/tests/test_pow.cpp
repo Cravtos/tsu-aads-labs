@@ -10,11 +10,25 @@ using namespace std;
 int main() {
     thread_local static mt19937 mt(static_cast<uint32_t>(time(nullptr)));
 
+    { // interactive test
+        ssize_t N = 10;
+        while (N-- > 0) {
+            BigNum f; cout << "Enter f: "; cin >> f;
+            BigNum pow; cout << "Enter pow: "; cin >> pow;
+            cout << "       pow:" << f.pow(pow) << endl;
+            cout << "Stupid pow:" << f.stupid_pow(pow) << endl;
+        }
+    }
+
     { // test random numbers pow
         ssize_t N = 3;
         while (N-- > 0) {
             BigNum f(1, RANDOM);
             BigNum g(1, RANDOM);
+
+            cout << "f: " << f << endl;
+            cout << "g: " << g << endl;
+
             BigNum f_pow = f.pow(g);
             BigNum f_stupid_pow = f.stupid_pow(g);
             if (f_pow != f_stupid_pow) {
@@ -43,6 +57,9 @@ int main() {
             BigNum f(M, RANDOM);
             BigNum g(M, RANDOM);
 
+            cout << "f: " << f << endl;
+            cout << "g: " << g << endl;
+
             auto t1 = high_resolution_clock::now();
             BigNum f_pow = f.pow(g);
             auto t2 = high_resolution_clock::now();
@@ -57,13 +74,5 @@ int main() {
         }
     }
 
-    { // interactive test
-        ssize_t N = 10;
-        while (N-- > 0) {
-            BigNum f; cout << "Enter f: "; cin >> f;
-            BigNum pow; cout << "Enter pow: "; cin >> pow;
-            cout << "Stupid pow:" << f.stupid_pow(pow) << endl;
-            cout << "       pow:" << f.pow(pow) << endl;
-        }
-    }
+
 }

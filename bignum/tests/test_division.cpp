@@ -55,6 +55,8 @@ int main() {
             cout << "q = a / b: " << q << endl;
             cout << "r = a % b: " << r << endl;
         }
+
+        cout << "Tests left: " << N << endl;
     }
 
     { // speed cmp

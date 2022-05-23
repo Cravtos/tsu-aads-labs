@@ -3,12 +3,9 @@ project(bignum)
 
 set(CMAKE_CXX_STANDARD 14)
 
-IF(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
-ENDIF(CMAKE_COMPILER_IS_GNUCC)
-
 add_library(bignum src/arithmetic.cpp src/constructors.cpp src/compare.cpp include/bignum.h src/io.cpp src/helpers.cpp)
+add_library(fraction src/fraction.cpp)
+link_libraries(bignum fraction)
 
 add_executable(test_constructors tests/test_constructors.cpp)
 target_link_libraries(test_constructors bignum)
@@ -33,3 +30,6 @@ target_link_libraries(test_fast_sq bignum)
 
 add_executable(test_pow tests/test_pow.cpp)
 target_link_libraries(test_pow bignum)
+
+add_executable(test_prime tests/test_prime.cpp)
+target_link_libraries(test_prime bignum)

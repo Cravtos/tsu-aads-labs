@@ -1,4 +1,5 @@
 #include "../include/bignum.h"
+#include "../include/fraction.h"
 
 BigNum& BigNum::resize(size_t new_cap) {
     auto* new_factors = new base_t[new_cap];
@@ -75,3 +76,44 @@ BigNum get_barret_z(const BigNum& mod) {
     z /= mod;
     return z;
 }
+
+// Using Fermat's prime test (probabilistic)
+bool BigNum::is_prime(size_t rounds) const {
+    while (rounds > 0) {
+        BigNum a = BigNum(size, RANDOM);
+        if (BigNum(base_t(2)) > a && a > *this - 2) {
+            continue;
+        }
+
+        BigNum r = a.pow_mod(*this-1, *this);
+        if (r != 1) {
+            return false;
+        }
+
+        rounds -= 1;
+    }
+    return true;
+}
+
+// Using Fermat's prime test (probabilistic)
+//bool BigNum::is_prime(double certainty) const {
+//    Fraction cert = Fraction(certainty);
+//    Fraction eps = Fraction(this->totient(), *this);
+//    Fraction cur_err(eps);
+//
+//    while (cur_err > cert) {
+//        BigNum a = BigNum(size, RANDOM);
+//        if (BigNum(base_t(2)) > a && a > *this - 2) {
+//            continue;
+//        }
+//
+//        BigNum r = a.pow_mod(*this-1, *this);
+//        if (r != 1) {
+//            return false;
+//        }
+//
+//        cur_err *= eps;
+//    }
+//
+//    return true;
+//}

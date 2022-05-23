@@ -67,7 +67,8 @@ public:
     BigNum& operator-=(const BigNum& bn);
 
     BigNum fast_sq() const;
-    BigNum pow(const BigNum& n) const;
+    BigNum pow(const BigNum& pow) const;
+    BigNum pow_mod(const BigNum& pow, const BigNum& mod) const;
     BigNum stupid_pow(const BigNum& n) const;
 
     BigNum barret_mod(const BigNum& n, const BigNum& z) const;
@@ -85,6 +86,12 @@ public:
     bool operator<(const BigNum& bn) const;
     bool operator<=(const BigNum& bn) const;
 
+    bool is_prime(size_t rounds = 10) const;
+//    bool is_prime(double certainty = 0.01) const;
+    BigNum totient() const;
+
+    BigNum gcd(const BigNum& bn) const;
+
     void print(std::ostream& os) const;
 
     friend std::ostream& operator<<(std::ostream& os, const BigNum& bn);
@@ -101,11 +108,12 @@ private:
     BigNum shrf(size_t i) const;
 
     // Shift i factors to left.
-    BigNum shlf(size_t i) const;
+    __attribute__((unused)) BigNum shlf(size_t i) const;
 
     friend BigNum get_barret_z(const BigNum& mod);
 };
 
+BigNum get_barret_z(const BigNum& mod);
 BigNum bn_read(std::istream& is);
 
 #endif //BIGNUM_BIGNUM_H

@@ -530,19 +530,41 @@ BigNum BigNum::fast_sq() const {
     return res;
 }
 
-BigNum BigNum::pow(const BigNum& n) const {
+BigNum BigNum::pow(const BigNum& pow) const {
     BigNum q = BigNum(*this);
     BigNum z((base_t) 1);
     // If first bit is 1
-    if (n.factors[0] & 1) {
+    if (pow.factors[0] & 1) {
         z = BigNum(*this);
     }
 
-    size_t n_bits = n.bits();
+    size_t n_bits = pow.bits();
     for (size_t i = 1; i < n_bits; i++) {
         q = q.fast_sq();
-        if (n.bit(i)) {
+        if (pow.bit(i)) {
             z *= q;
+        }
+    }
+
+    return z;
+}
+
+BigNum BigNum::pow_mod(const BigNum& pow, const BigNum& mod) const {
+    BigNum q = BigNum(*this);
+    BigNum z((base_t) 1);
+
+    BigNum barret_const = get_barret_z(mod);
+
+    // If first bit is 1
+    if (pow.factors[0] & 1) {
+        z = BigNum(*this) % mod;
+    }
+
+    size_t n_bits = pow.bits();
+    for (size_t i = 1; i < n_bits; i++) {
+        q = q.fast_sq() % mod;
+        if (pow.bit(i)) {
+            z = (z * q) % mod;
         }
     }
 
@@ -592,4 +614,35 @@ BigNum BigNum::barret_mod(const BigNum& n, const BigNum& z) const {
     }
 
     return r_guess;
+}
+
+BigNum BigNum::totient() const {
+    BigNum result = *this;
+    BigNum n = *this;
+
+    for (BigNum i = 2; i.fast_sq() <= n; i += 1) {
+        if (n % i == 0) {
+            do {
+                n /= i;
+            } while (n % i == 0);
+            result -= result / i;
+        }
+    }
+
+    if (n > 1)
+        result -= result / n;
+
+    return result;
+}
+
+BigNum BigNum::gcd(const BigNum& bn) const {
+    BigNum a = *this;
+    BigNum b = bn;
+
+    while (b != 0) {
+        BigNum t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
 }
