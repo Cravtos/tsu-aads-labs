@@ -86,8 +86,9 @@ public:
     bool operator<(const BigNum& bn) const;
     bool operator<=(const BigNum& bn) const;
 
-    bool is_prime(size_t rounds = 10) const;
-//    bool is_prime(double certainty = 0.01) const;
+    bool fermat_prime_test(size_t rounds = 100) const;
+    bool solovay_strassen_prime_test(size_t rounds = 15) const;
+//    bool fermat_prime_test(double certainty = 0.01) const;
     BigNum totient() const;
 
     BigNum gcd(const BigNum& bn) const;
@@ -97,6 +98,8 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const BigNum& bn);
     friend std::istream& operator>>(std::istream& is, BigNum& bn);
 
+    bool is_even() const;
+    bool is_odd() const;
 private:
     // Changes size of allocated memory to new_size. Copies old values.
     BigNum& resize(size_t new_cap);

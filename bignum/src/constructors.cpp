@@ -24,6 +24,7 @@ BigNum::BigNum(base_t num)
     factors[0] = num;
 }
 
+// TODO: BUG: size and cap is calculated wrong given sizeof(ext_base_t) != 2 * sizeof(base_t)
 BigNum::BigNum(ext_base_t num)
         :size(2), cap(2) {
     factors = new base_t[cap];

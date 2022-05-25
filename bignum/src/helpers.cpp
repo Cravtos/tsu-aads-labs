@@ -77,11 +77,18 @@ BigNum get_barret_z(const BigNum& mod) {
     return z;
 }
 
-// Using Fermat's prime test (probabilistic)
-bool BigNum::is_prime(size_t rounds) const {
+bool BigNum::fermat_prime_test(size_t rounds) const {
+    if (*this == 3 || *this == 2) {
+        return true;
+    }
+
+    if (this->is_even()) {
+        return false;
+    }
+
     while (rounds > 0) {
         BigNum a = BigNum(size, RANDOM);
-        if (BigNum(base_t(2)) > a && a > *this - 2) {
+        if (BigNum(base_t(2)) > a || a > *this - 2) {
             continue;
         }
 
@@ -95,8 +102,90 @@ bool BigNum::is_prime(size_t rounds) const {
     return true;
 }
 
+bool BigNum::is_even() const {
+    return factors[0] % 2 == 0;
+}
+
+bool BigNum::is_odd() const {
+    return factors[0] % 2 == 1;
+}
+
+int8_t jacobi(const BigNum& a, const BigNum& n) {
+    if (a == 0) {
+        return 0;
+    }
+    if (a == 1) {
+        return 1;
+    }
+
+    BigNum b = a;
+    BigNum k = 0;
+    while (b.is_even()) {
+        b /= 2;
+        k += 1;
+    }
+
+    int8_t s;
+    if (k.is_even()) {
+        s = 1;
+    } else {
+        BigNum rem = n % 8;
+        if (rem == 1 || rem == 7) {
+            s = 1;
+        } else {
+            s = -1;
+        }
+    }
+
+    if (n % 4 == 3 && b % 4 == 3) {
+        s = -s;
+    }
+
+    if (b == 1) {
+        return s;
+    }
+    return s * jacobi(n % b, b);
+}
+
+
+bool BigNum::solovay_strassen_prime_test(size_t rounds) const {
+    if (*this == 3 || *this == 2) {
+        return true;
+    }
+
+    if (this->is_even()) {
+        return false;
+    }
+
+    BigNum nmm = *this - 1;
+    while (rounds) {
+        BigNum a = BigNum(size, RANDOM);
+        if (a < BigNum(base_t(2)) || a > *this - 2) {
+            continue;
+        }
+
+        BigNum r = a.pow_mod(nmm / 2, *this);
+        if (r != 1 && r != nmm) {
+            return false;
+        }
+
+        int8_t s = jacobi(a, *this);
+        if (s == 1) {
+            if (r != 1) {
+                return false;
+            }
+        } else {
+            if (r != nmm) {
+                return false;
+            }
+        }
+
+        rounds--;
+    }
+    return true;
+}
 // Using Fermat's prime test (probabilistic)
-//bool BigNum::is_prime(double certainty) const {
+//bool BigNum::fermat_prime_test(double certainty) const {
 //    Fraction cert = Fraction(certainty);
 //    Fraction eps = Fraction(this->totient(), *this);
 //    Fraction cur_err(eps);

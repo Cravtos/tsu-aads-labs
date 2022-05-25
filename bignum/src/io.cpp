@@ -100,6 +100,7 @@ std::istream& operator>>(std::istream& is, BigNum& bn) {
 }
 
 std::ostream& operator<<(std::ostream& os, const BigNum& bn) {
+    os << "0x";
     os << std::hex << std::uppercase;
     size_t digits = sizeof(base_t) * 2; // amount of digits in one base_t
     for (ssize_t i = ssize_t(bn.size) - 1; i >= 0; i--) {
