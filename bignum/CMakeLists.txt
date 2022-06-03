@@ -4,8 +4,6 @@ project(bignum)
 set(CMAKE_CXX_STANDARD 14)
 
 add_library(bignum src/arithmetic.cpp src/constructors.cpp src/compare.cpp include/bignum.h src/io.cpp src/helpers.cpp)
-add_library(fraction src/fraction.cpp)
-link_libraries(bignum fraction)
 
 add_executable(test_constructors tests/test_constructors.cpp)
 target_link_libraries(test_constructors bignum)

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iostream>
 
-typedef uint16_t base_t; // fast_sq won't work with base_t having more than 16 bits
+typedef uint32_t base_t;
 typedef uint64_t ext_base_t;
 typedef int64_t ext_sbase_t;
 
@@ -118,5 +118,8 @@ private:
 
 BigNum get_barret_z(const BigNum& mod);
 BigNum bn_read(std::istream& is);
+
+int8_t jacobi(const BigNum& a, const BigNum& n);
+BigNum gen_strong_prime(size_t half_size);
 
 #endif //BIGNUM_BIGNUM_H

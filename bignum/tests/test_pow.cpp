@@ -44,6 +44,33 @@ int main() {
         cout << "Random exponentiation tests are passed!" << endl;
     }
 
+    { // test mod pow
+        cout << "Starting pow_mod test!" << endl;
+        ssize_t N = 10;
+        while (N-- > 0) {
+            BigNum f(1, RANDOM);
+            BigNum g(1, RANDOM);
+            BigNum mod(1, RANDOM);
+
+            cout << "f: " << f << endl;
+            cout << "g: " << g << endl;
+
+            BigNum f_pow_then_mod = f.pow(g) % mod;
+            BigNum f_mod_pow = f.pow_mod(g, mod);
+            if (f_pow_then_mod != f_mod_pow) {
+                cout << "Failed test with: " << endl;
+                cout << "f_pow_then_mod: " << f_pow_then_mod << endl;
+                cout << "     f_mod_pow: " << f_mod_pow << endl;
+                cout << "  f: " << f << endl;
+                cout << "pow: " << g << endl;
+                cout << "mod: " << mod << endl;
+                break;
+            }
+            cout << "Random exponentiation tests left: " << N << endl;
+        }
+        cout << "Random exponentiation tests are passed!" << endl;
+    }
+
     { // speed cmp
         using std::chrono::high_resolution_clock;
         using std::chrono::duration_cast;

@@ -1,5 +1,4 @@
 #include "../include/bignum.h"
-#include "../include/fraction.h"
 
 BigNum& BigNum::resize(size_t new_cap) {
     auto* new_factors = new base_t[new_cap];
@@ -184,25 +183,33 @@ bool BigNum::solovay_strassen_prime_test(size_t rounds) const {
     }
     return true;
 }
-// Using Fermat's prime test (probabilistic)
-//bool BigNum::fermat_prime_test(double certainty) const {
-//    Fraction cert = Fraction(certainty);
-//    Fraction eps = Fraction(this->totient(), *this);
-//    Fraction cur_err(eps);
-//
-//    while (cur_err > cert) {
-//        BigNum a = BigNum(size, RANDOM);
-//        if (BigNum(base_t(2)) > a && a > *this - 2) {
-//            continue;
-//        }
-//
-//        BigNum r = a.pow_mod(*this-1, *this);
-//        if (r != 1) {
-//            return false;
-//        }
-//
-//        cur_err *= eps;
-//    }
-//
-//    return true;
-//}
+
+BigNum gen_prime(size_t size) {
+    BigNum prime;
+    do {
+        prime = BigNum(size, RANDOM);
+    } while (!prime.solovay_strassen_prime_test(100)); // P of fp < 1e-30
+    return prime;
+}
+
+BigNum gen_strong_prime(size_t half_size) {
+    BigNum s = gen_prime(half_size);
+    BigNum t = gen_prime(half_size);
+
+    BigNum i(1, RANDOM);
+    BigNum r = BigNum(base_t(2)) * i * t + 1;
+    while (!r.solovay_strassen_prime_test(100)) {
+        i += 1;
+        r = BigNum(base_t(2)) * i * t + 1;
+    }
+
+    BigNum p0 = BigNum(base_t(2)) * s * s.pow_mod(r - 2, r) - 1;
+    BigNum j(1, RANDOM);
+    BigNum p = BigNum(base_t(2)) * j * r * s + p0;
+    while (!p.solovay_strassen_prime_test(100)) {
+        j += 1;
+        p = BigNum(base_t(2)) * j * r * s + p0;
+    }
+
+    return p;
+}

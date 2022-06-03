@@ -507,11 +507,11 @@ BigNum BigNum::fast_sq() const {
     res.size = 2 * size; // because after ZERO-fill size will be automatically trimmed to 1
 
     for (size_t i = 0; i < size; i++) {
-        ext_base_t cuv = res.factors[2 * i] + ext_base_t(factors[i]) * factors[i];
+        __int128 cuv = res.factors[2 * i] + __int128(factors[i]) * factors[i];
         res.factors[2 * i] = cuv; // % base;
 
         for (size_t j = i + 1; j < size; j++) {
-            cuv = res.factors[i + j] + ext_base_t(2) * factors[i] * factors[j] + (cuv >> base_size);
+            cuv = res.factors[i + j] + __int128(2) * factors[i] * factors[j] + (cuv >> base_size);
             res.factors[i + j] = cuv; // % base;
         }
 
@@ -522,7 +522,7 @@ BigNum BigNum::fast_sq() const {
 //            to_next = tmp >> base_size;
 //            res.factors[i + size + k] = tmp; // % base;
 //        }
-        auto y = (ext_base_t*) &res.factors[i+size];
+        auto y = (__int128*) &res.factors[i+size];
         *y += cuv >> base_size;
     }
 
@@ -550,25 +550,22 @@ BigNum BigNum::pow(const BigNum& pow) const {
 }
 
 BigNum BigNum::pow_mod(const BigNum& pow, const BigNum& mod) const {
-    BigNum q = BigNum(*this);
-    BigNum z((base_t) 1);
-
-    BigNum barret_const = get_barret_z(mod);
-
-    // If first bit is 1
-    if (pow.factors[0] & 1) {
-        z = BigNum(*this) % mod;
+    if (mod == 1) {
+        return {base_t(0)};
     }
+
+    BigNum res = 1;
+    BigNum b = *this % mod;
 
     size_t n_bits = pow.bits();
-    for (size_t i = 1; i < n_bits; i++) {
-        q = q.fast_sq() % mod;
+    for (size_t i = 0; i < n_bits; i++) {
         if (pow.bit(i)) {
-            z = (z * q) % mod;
+            res = (res * b) % mod;
         }
+        b = b.fast_sq() % mod;
     }
 
-    return z;
+    return res;
 }
 
 BigNum BigNum::stupid_pow(const BigNum& n) const {
