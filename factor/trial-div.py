@@ -6,9 +6,14 @@ import sys
 
 def factor(num: int) -> dict[int, int]:
     factors = defaultdict(int)
-    if isprime(num) or num == 1:
+    
+    if isprime(num) or -1 <= num <= 1:
         factors[num] = 1
         return factors
+
+    if num < 0:
+        factors[-1] = 1
+        num = abs(num)    
     
     while num % 2 == 0:
         factors[2] += 1

@@ -88,7 +88,7 @@ public:
 
     bool fermat_prime_test(size_t rounds = 100) const;
     bool solovay_strassen_prime_test(size_t rounds = 15) const;
-//    bool fermat_prime_test(double certainty = 0.01) const;
+
     BigNum totient() const;
 
     BigNum gcd(const BigNum& bn) const;
