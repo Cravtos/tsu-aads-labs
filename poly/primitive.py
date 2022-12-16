@@ -13,14 +13,13 @@ def is_primitive(f: Poly, p: int) -> bool:
     a = Poly(x, domain=f.domain)
 
     factors = factorint(m)
-    for factor in factors:
+    for factor in factors:  
         if factor == 1:
             continue
         r = (a ** (m // factor)) % f
         if r == 1:
             return False
     return True
-
 
 
 def main():
